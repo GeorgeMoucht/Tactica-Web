@@ -1,0 +1,110 @@
+<div class="auth grid min-h-screen">
+  <!-- Αριστερό πάνελ -->
+  <div class="hidden md:flex col-6 brand-panel align-items-center justify-content-center">
+    <div class="text-center px-6">
+      <div class="text-3xl font-semibold mb-2">Tactica</div>
+      <p class="text-600">Δημιούργησε λογαριασμό και ξεκίνα άμεσα.</p>
+    </div>
+  </div>
+
+  <!-- Φόρμα εγγραφής -->
+  <div class="col-12 md:col-6 flex align-items-center justify-content-center p-4">
+    <div class="auth-card surface-card border-round-2xl shadow-2 w-full md:w-8 lg:w-6 p-4">
+      <div class="mb-4">
+        <div class="text-xl font-semibold">Εγγραφή</div>
+        <div class="text-600">Συμπλήρωσε τα στοιχεία σου</div>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="p-fluid">
+        <!-- Όνομα -->
+        <div class="mb-3">
+          <label for="name" class="block text-sm mb-2">Όνομα</label>
+          <p-iconField>
+            <p-inputIcon class="pi pi-user"></p-inputIcon>
+            <input pInputText id="name" type="text" formControlName="name" class="w-full" placeholder="Πλήρες όνομα" />
+          </p-iconField>
+          @if (form.controls.name.touched && form.controls.name.invalid) {
+            <small class="text-red-500">Το όνομα είναι υποχρεωτικό</small>
+          }
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+          <label for="email" class="block text-sm mb-2">Email</label>
+          <p-iconField class="w-full">
+            <p-inputIcon class="pi pi-envelope"></p-inputIcon>
+            <input pInputText id="email" type="email" formControlName="email" class="w-full" placeholder="you@company.com" />
+          </p-iconField>
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <small class="text-red-500">Εισάγετε έγκυρο email</small>
+          }
+        </div>
+
+        <!-- Κωδικός -->
+        <div class="mb-3">
+          <label for="password" class="block text-sm mb-2">Κωδικός</label>
+          <p-iconField class="w-full">
+            <p-inputIcon class="pi pi-lock"></p-inputIcon>
+            <p-password id="password"
+                        formControlName="password"
+                        [feedback]="false"
+                        [toggleMask]="true"
+                        class="w-full"
+                        inputStyleClass="w-full"
+                        placeholder="••••••••">
+            </p-password>
+          </p-iconField>
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <small class="text-red-500">Ο κωδικός είναι υποχρεωτικός</small>
+          }
+        </div>
+
+        <!-- Επιβεβαίωση κωδικού -->
+        <div class="mb-3">
+          <label for="confirm" class="block text-sm mb-2">Επιβεβαίωση κωδικού</label>
+          <p-iconField class="w-full">
+            <p-inputIcon class="pi pi-lock"></p-inputIcon>
+            <p-password id="confirm"
+                        formControlName="confirm"
+                        [feedback]="false"
+                        [toggleMask]="true"
+                        inputStyleClass="w-full"
+                        class="w-full"
+                        placeholder="••••••••">
+            </p-password>
+          </p-iconField>
+          @if (form.controls.confirm.touched && (form.controls.confirm.invalid || form.controls.confirm.errors?.['mismatch'])) {
+            <small class="text-red-500">Οι κωδικοί δεν ταιριάζουν</small>
+          }
+        </div>
+
+        <!-- Submit -->
+        <button
+          pButton
+          type="submit"
+          [loading]="loading"
+          label="Δημιούργησε λογαριασμό"
+          icon="pi pi-user-plus"
+          class="w-full mb-3">
+        </button>
+
+        <!-- Divider -->
+        <p-divider align="center" type="dashed">
+          <b class="text-600 text-sm">ή</b>
+        </p-divider>
+
+        <!-- Σύνδεση -->
+        <div class="text-center text-600 text-sm">
+            Έχεις ήδη λογαριασμό;
+            <button
+                pButton
+                routerLink="/auth/login"
+                label="Σύνδεση"
+                class="p-button-link p-0 p-ml-1 text-primary"
+                style="font-size: 0.875rem;">
+            </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

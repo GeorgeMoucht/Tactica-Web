@@ -1,0 +1,46 @@
+:host {
+  display: block;
+}
+
+/* Subtle, light, professional */
+.brand-panel {
+  backdrop-filter: blur(4px);
+  background:
+    /* Top-left purple glow */
+    radial-gradient(
+      900px 500px at 30% 20%,
+      color-mix(in oklab, var(--p-primary-color), transparent 80%),
+      transparent 60%
+    ),
+
+    /* Bottom-right purple glow (mirrored) */
+    radial-gradient(
+      700px 400px at 80% 90%,
+      color-mix(in oklab, var(--p-primary-color), transparent 88%),
+      transparent 70%
+    ),
+
+    /* Subtle linear blend */
+    linear-gradient(
+      120deg,
+      color-mix(in oklab, var(--p-primary-color), transparent 92%) 0%,
+      transparent 60%
+    ),
+
+    /* Base surface color */
+    var(--p-surface-50);
+}
+
+
+.auth-card {
+  /* Gentle rounding & spacing tuned for Nora/Lara */
+  --p-content-padding: 1rem;
+  border: 1px solid var(--p-content-border-color);
+}
+
+
+/* Ensure the icon column and input align correctly */
+:host ::ng-deep .p-icon-field .p-inputicon {
+  display: flex;
+  align-items: center;
+}

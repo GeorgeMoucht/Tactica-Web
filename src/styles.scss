@@ -1,1 +1,49 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'primeicons/primeicons.css';
+@import 'primeflex/primeflex.css';
+
+html.brand-indigo {
+  --p-primary-50:  #E8EAF6;
+  --p-primary-100: #C5CAE9;
+  --p-primary-200: #9FA8DA;
+  --p-primary-300: #7986CB;
+  --p-primary-400: #5C6BC0;
+  --p-primary-500: #3F51B5; /* main */
+  --p-primary-600: #3949AB; /* hover */
+  --p-primary-700: #303F9F;
+  --p-primary-800: #283593;
+  --p-primary-900: #1A237E;
+
+  --p-primary-color: var(--p-primary-500);
+  --p-primary-color-text: #ffffff;
+
+  --p-surface-ground: #F5F7FA;
+  --p-surface-card:   #ffffff;
+  --p-border-color:   #e0e0e0;
+  --p-text-color:     #1E1E1E;
+}
+
+
+/* Optional: App overrides */
+html, body {
+  margin: 0;
+  padding: 0;
+  // font-family: var(--p-font-family);
+  font-family: 'Inter', sans-serif;
+  background-color: var(--p-surface-ground);
+  color: var(--p-text-color);
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--p-primary-600);
+    text-decoration: underline;
+  }
+
+  &:active {
+    color: var(--p-primary-700);
+  }
+}
