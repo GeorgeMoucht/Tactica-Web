@@ -82,6 +82,7 @@
         <button
           pButton
           type="submit"
+          [disabled]="loading || form.invalid"
           [loading]="loading"
           label="Δημιούργησε λογαριασμό"
           icon="pi pi-user-plus"

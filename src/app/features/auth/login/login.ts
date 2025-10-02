@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, Validators, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { MessageService } from 'primeng/api';
+import { finalize } from 'rxjs';
 
 // PrimeNG
 import { InputTextModule } from 'primeng/inputtext';
@@ -22,7 +24,10 @@ type LoginForm = {
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, IconFieldModule, InputIconModule, RouterLink, InputTextModule, PasswordModule, CheckboxModule, ButtonModule, DividerModule],
+  imports: [ReactiveFormsModule, IconFieldModule, InputIconModule,
+            RouterLink, InputTextModule, PasswordModule,
+            CheckboxModule, ButtonModule, DividerModule
+  ],
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
@@ -30,6 +35,7 @@ export class Login {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private toast = inject(MessageService);
 
   loading = false;
 
@@ -48,21 +54,42 @@ export class Login {
     }
     this.loading = true;
 
-    const { email, password } = this.form.getRawValue();
+    const { email, password, remember } = this.form.getRawValue();
 
     const dto: LoginRequest = { email, password}
 
-    this.auth.login(dto).subscribe({
+    this.auth.login(dto)
+    .pipe(finalize(() => this.loading = false))
+    .subscribe({
       next: (payload: AuthPayload) => {
-        this.auth.setSession({
+        this.auth.setSession(
+        {
           access_token: payload.access_token!,
           refresh_token: payload.refresh_token!,
           token_type: payload.token_type,
           user: payload.user
+        },
+        { remember }
+      );
+
+        this.toast.add({
+          severity: 'success',
+          summary: 'Σύνδεση επιτυχής',
+          detail: `Καλώς ήρθες, ${payload.user.name}!`,
+          life: 3000
         });
-        this.router.navigateByUrl('/dashboard');
+
+        setTimeout(() => this.router.navigateByUrl('/dashboard'), 300);
       },
-      error: (err) => alert(err?.error?.message || 'Login failed'),
+      error: (err) => {
+        const detail = err?.error?.message || 'Αποτυχία σύνδεσης';
+        this.toast.add({
+          severity: 'error',
+          summary: 'Σφάλμα',
+          detail,
+          life: 4000
+        });
+      },
       complete: () => (this.loading = false)
     });
   }

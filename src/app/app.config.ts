@@ -12,6 +12,8 @@ import Lara from '@primeuix/themes/lara';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { MessageService } from 'primeng/api';
+
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,6 +27,7 @@ export const appConfig: ApplicationConfig = {
         preset: Lara,
         options: { darkModeSelector: '.force-dark-toggle' }
       }
-    })
+    }),
+    MessageService
   ]
 };

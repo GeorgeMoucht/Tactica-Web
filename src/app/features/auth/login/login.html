@@ -49,7 +49,7 @@
 
         <div class="flex align-items-center justify-content-between mb-3">
           <div class="flex align-items-center gap-2">
-            <p-checkbox inputId="remember" formControlName="remember"></p-checkbox>
+            <p-checkbox inputId="remember" formControlName="remember" [binary]="true"></p-checkbox>
             <label for="remember" class="text-600 text-sm">Να με θυμάσαι</label>
           </div>
           <button
@@ -61,7 +61,15 @@
           </button>
         </div>
         
-        <button pButton type="submit" [loading]="loading" label="Σύνδεση" icon="pi pi-sign-in" class="w-full mb-3"></button>
+        <button 
+          pButton
+          type="submit"
+          [disabled]="loading || form.invalid"
+          [loading]="loading"
+          label="Σύνδεση"
+          icon="pi pi-sign-in"
+          class="w-full mb-3">
+        </button>
 
         <p-divider align="center" type="dashed"><b class="text-600 text-sm">ή</b></p-divider>
 

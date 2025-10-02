@@ -8,6 +8,8 @@ import {
 } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
+import { MessageService } from "primeng/api";
+import { finalize } from 'rxjs';
 
 import { InputTextModule } from "primeng/inputtext";
 import { PasswordModule } from "primeng/password";
@@ -40,6 +42,7 @@ export class Register {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private toast = inject(MessageService);
 
   loading = false;
 
@@ -74,7 +77,9 @@ export class Register {
       password_confirmation: confirm
     };
 
-    this.auth.register(dto).subscribe({
+    this.auth.register(dto)
+    .pipe(finalize(() => this.loading = false))
+    .subscribe({
       next: (payload: AuthPayload) => {
         this.auth.setSession({
           access_token: payload.access_token!,
@@ -82,9 +87,26 @@ export class Register {
           token_type: payload.token_type,
           user: payload.user
         });
-        this.router.navigateByUrl('/dashboard');
+
+        this.toast.add({
+          severity: 'success',
+          summary: 'Εγγραφή επιτυχής',
+          detail: `Καλωσόρισες, ${payload.user.name}!`,
+          life: 3000
+        });
+
+        setTimeout(() => this.router.navigateByUrl('/dashboard'), 300);
+        // this.router.navigateByUrl('/dashboard');
       },
-      error: (err) => alert(err?.error?.message || 'Η εγγραφή απέτυχε'),
+      error: (err) => {
+        const detail = err?.error?.message || 'Η εγγραφή απέτυχε';
+        this.toast.add({
+          severity: 'error',
+          summary: 'Σφάλμα',
+          detail,
+          life: 4000
+        });
+      },
       complete: () => (this.loading = false)
     });
   }
