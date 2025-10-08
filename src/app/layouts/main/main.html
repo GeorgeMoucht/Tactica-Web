@@ -1,0 +1,43 @@
+<p-toast position="top-center"></p-toast>
+
+<header class="topbar surface-card flex align-items-center justify-content-between px-3 py-2 border-bottom-1">
+  <div class="flex align-items-center gap-2">
+    <button pButton icon="pi pi-bars" class="p-button-text" (click)="toggleSidebar()" pTooltip="Μενού"></button>
+    <a routerLink="/dashboard" class="brand text-xl font-semibold no-underline">Tactica</a>
+  </div>
+
+  <div class="flex align-items-center gap-3">
+    <button pButton icon="pi pi-bell" class="p-button-text" pTooltip="Ειδοποιήσεις"></button>
+    <button pButton icon="pi pi-cog" class="p-button-text" pTooltip="Ρυθμίσεις"></button>
+    <div class="flex align-items-center gap-2">
+      <p-avatar icon="pi pi-user" shape="circle"></p-avatar>
+      <div class="hidden md:block">
+        <div class="text-900 text-sm font-medium">{{ user$()?.name || 'Χρήστης' }}</div>
+        <div class="text-600 text-xs">{{ user$()?.email }}</div>
+      </div>
+      <button pButton label="Έξοδος" class="p-button-text" (click)="logout()"></button>
+    </div>
+  </div>
+</header>
+
+<p-drawer
+  [visible]="sidebarOpen()"
+  (visibleChange)="sidebarOpen.set($event)"
+  position="start"
+  modal
+  [showCloseIcon]="true"
+  [closeOnEscape]="true"
+  styleClass="app-sidebar"
+>
+  <nav class="flex flex-column gap-2">
+    <a routerLink="/dashboard" routerLinkActive="active" class="nav-link"><i class="pi pi-home mr-2"></i> Πίνακας</a>
+    <a routerLink="/students"  routerLinkActive="active" class="nav-link"><i class="pi pi-user mr-2"></i> Μαθητές</a>
+    <a routerLink="/instructors" routerLinkActive="active" class="nav-link"><i class="pi pi-users mr-2"></i> Καθηγητές</a>
+    <a routerLink="/sessions" routerLinkActive="active" class="nav-link"><i class="pi pi-calendar mr-2"></i> Μαθήματα</a>
+    <a routerLink="/courses" routerLinkActive="active" class="nav-link"><i class="pi pi-book mr-2"></i> Κύκλοι</a>
+  </nav>
+</p-drawer>
+
+<main class="page px-3 py-3">
+  <router-outlet />
+</main>

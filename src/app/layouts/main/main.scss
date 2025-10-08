@@ -1,0 +1,12 @@
+.topbar { border-color: var(--p-border-color); }
+.app-sidebar .nav-link {
+  display: flex; align-items: center;
+  padding: .6rem .8rem; border-radius: .75rem;
+  color: var(--p-text-color); text-decoration: none;
+}
+.app-sidebar .nav-link.active,
+.app-sidebar .nav-link:hover {
+  background: var(--p-primary-50);
+  color: var(--p-primary-700);
+}
+.page { min-height: calc(100dvh - 56px); background: var(--p-surface-ground); }

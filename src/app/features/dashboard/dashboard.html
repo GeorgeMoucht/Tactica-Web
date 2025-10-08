@@ -1,6 +1,120 @@
-<div class="p-4">
-    <p-card header="Dashboard">
-        <p class="mb-3">Protected content will be here.</p>
-        <button pButton type="button" label="Logout" (click)="logout()"></button>
+<!-- src/app/features/dashboard/dashboard.html -->
+<div class="grid">
+  <!-- KPI 1 -->
+  @if (!loadingStats()) {
+    <div class="col-12 md:col-6 lg:col-3">
+      <p-card>
+        <div class="text-600 text-sm">Ενεργοί μαθητές</div>
+        <div class="text-3xl font-semibold">{{ stats()?.active_learners }}</div>
+      </p-card>
+    </div>
+  } @else {
+    <div class="col-12 md:col-6 lg:col-3"><p-skeleton height="6rem" borderRadius="1rem"></p-skeleton></div>
+  }
+
+  <!-- KPI 2 -->
+  @if (!loadingStats()) {
+    <div class="col-12 md:col-6 lg:col-3">
+      <p-card>
+        <div class="text-600 text-sm">Καθηγητές / Εισηγητές</div>
+        <div class="text-3xl font-semibold">{{ stats()?.active_instructors }}</div>
+      </p-card>
+    </div>
+  } @else {
+    <div class="col-12 md:col-6 lg:col-3"><p-skeleton height="6rem" borderRadius="1rem"></p-skeleton></div>
+  }
+
+  <!-- KPI 3: your model has 'session_today' -->
+  @if (!loadingStats()) {
+    <div class="col-12 md:col-6 lg:col-3">
+      <p-card>
+        <div class="text-600 text-sm">Μαθήματα σήμερα</div>
+        <div class="text-3xl font-semibold">{{ stats()?.session_today }}</div>
+      </p-card>
+    </div>
+  } @else {
+    <div class="col-12 md:col-6 lg:col-3"><p-skeleton height="6rem" borderRadius="1rem"></p-skeleton></div>
+  }
+
+  <!-- KPI 4: your model has 'entrollments_this_month' -->
+  @if (!loadingStats()) {
+    <div class="col-12 md:col-6 lg:col-3">
+      <p-card>
+        <div class="text-600 text-sm">Εγγραφές (μήνας)</div>
+        <div class="text-3xl font-semibold">{{ stats()?.entrollments_this_month }}</div>
+      </p-card>
+    </div>
+  } @else {
+    <div class="col-12 md:col-6 lg:col-3"><p-skeleton height="6rem" borderRadius="1rem"></p-skeleton></div>
+  }
+
+  <!-- Sessions Today -->
+  <div class="col-12">
+    <p-card>
+      <div class="flex align-items-center justify-content-between mb-3">
+        <div class="text-lg font-semibold">Σήμερα</div>
+        <div class="flex gap-2">
+          <button pButton icon="pi pi-plus" class="p-button-text" label="Νέο μάθημα"></button>
+          <button pButton icon="pi pi-user-plus" class="p-button-text" label="Νέος μαθητής"></button>
+        </div>
+      </div>
+
+      @if (!loadingSessions()) {
+        <p-table [value]="sessions()">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Ώρα</th>
+              <th>Μάθημα</th>
+              <th>Κατηγορία</th>
+              <th>Καθηγητής</th>
+              <th>Μαθητές</th>
+              <th>Αίθουσα</th>
+              <th>Κατάσταση</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-s>
+            <tr>
+              <td>{{ s.starts_at | date:'HH:mm' }} – {{ s.ends_at | date:'HH:mm' }}</td>
+              <td>{{ s.course.title }}</td>
+              <td>{{ disciplineLabel(s.course.discipline) }}</td>
+              <td>{{ s.instructor.name }}</td>
+              <!-- your model property is 'lerners' -->
+              <td>{{ getLearnerNames(s) }}</td>
+              <td>{{ s.room || '—' }}</td>
+              <td><p-tag [value]="s.status" [severity]="statusSeverity(s.status)"></p-tag></td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <p-skeleton height="10rem" borderRadius="1rem"></p-skeleton>
+      }
     </p-card>
+  </div>
+
+  <!-- Weekly hours per instructor -->
+  <div class="col-12">
+    <p-card>
+      <div class="text-lg font-semibold mb-3">Ώρες διδασκαλίας ανά καθηγητή (εβδομάδα)</div>
+
+      @if (!loadingHours()) {
+        <p-table [value]="hours()">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Καθηγητής</th>
+              <th class="text-right">Ώρες</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <!-- your model property is 'intructor_name' -->
+            <tr>
+              <td>{{ getInstructorName(row) }}</td>
+              <td class="text-right">{{ row.hours }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <p-skeleton height="8rem" borderRadius="1rem"></p-skeleton>
+      }
+    </p-card>
+  </div>
 </div>
