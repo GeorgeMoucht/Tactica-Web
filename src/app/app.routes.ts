@@ -5,6 +5,10 @@ import { MainLayout } from './layouts/main/main';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
 import { Dashboard } from './features/dashboard/dashboard';
+import { StudentsList } from './features/students/list/list';
+import { NewStudent } from './features/students/new/new';
+import { RegistrationNew } from './features/registration/new/new';
+import { RegistrationList } from './features/registration/list/list';
 
 export const routes: Routes = [
   { path: 'auth/login', component: Login },
@@ -16,9 +20,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: Dashboard },
+      { path: 'students', component: StudentsList },
+      { path: 'students/new', component: NewStudent },
       // placeholders for next features:
       // { path: 'students', loadComponent: () => import('./features/students/list').then(m => m.StudentsList) },
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' }
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      
+      { path: 'registrations', component: RegistrationList},
+      { path: 'registrations/new', component: RegistrationNew }
     ]
   },
 

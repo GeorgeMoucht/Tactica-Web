@@ -10,3 +10,106 @@
   color: var(--p-primary-700);
 }
 .page { min-height: calc(100dvh - 56px); background: var(--p-surface-ground); }
+
+.app-nav {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  height: 100%;
+}
+
+.nav-section {
+  padding: .25rem .25rem 0 .25rem;
+}
+
+.nav-label {
+  font-size: .75rem;
+  letter-spacing: .02em;
+  color: var(--p-text-muted-color, var(--p-text-700));
+  text-transform: uppercase;
+  margin: .25rem .5rem .35rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .6rem .65rem;
+  margin: .15rem .25rem;
+  border-radius: .75rem;
+  text-decoration: none;
+  color: var(--p-text-color);
+  transition: background .15s ease, color .15s ease, transform .06s ease;
+  outline: none;
+}
+
+.nav-link .icon {
+  display: grid;
+  place-items: center;
+  width: 32px; height: 32px;
+  border-radius: .65rem;
+  background: color-mix(in oklab, var(--p-primary-50), transparent 20%);
+  i { font-size: 0.9rem; color: var(--p-primary-600); }
+}
+
+.nav-link .text {
+  flex: 1 1 auto;
+}
+
+.nav-link .badge {
+  font-size: .72rem;
+  padding: .15rem .45rem;
+  border-radius: 999px;
+  background: var(--p-surface-200);
+  color: var(--p-text-color);
+}
+
+.nav-link:hover {
+  background: color-mix(in oklab, var(--p-primary-50), transparent 0%);
+}
+
+.nav-link:active { transform: translateY(1px); }
+
+/* Active “pill” look */
+.nav-link.active {
+  background: color-mix(in oklab, var(--p-primary-100), transparent 0%);
+  color: var(--p-primary-800);
+  .icon {
+    background: var(--p-primary-100);
+    i { color: var(--p-primary-700); }
+  }
+}
+
+/* Keyboard/Screen-reader accessibility */
+.nav-link:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--p-primary-400), #ffffff 60%);
+}
+
+/* Footer */
+.nav-footer {
+  margin-top: auto;
+  padding: .75rem .5rem .25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--p-text-600);
+  border-top: 1px solid var(--p-surface-200);
+}
+
+.brand-mini {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-weight: 600;
+}
+.brand-mini .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--p-primary-color, #3F51B5);
+}
+
+/* Optional: make section headers sticky while scrolling a long menu */
+@supports (position: sticky) {
+  .nav-section .nav-label {
+    position: sticky; top: 0;
+    background: inherit;
+    padding-top: .35rem; padding-bottom: .35rem;
+  }
+}

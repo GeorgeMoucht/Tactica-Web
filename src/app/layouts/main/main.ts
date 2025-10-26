@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
 import { DrawerModule } from 'primeng/drawer';
 import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
@@ -12,7 +12,7 @@ import { AuthService } from '../../core/services/auth.service';
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, DrawerModule, ButtonModule, AvatarModule, TooltipModule, DividerModule, ToastModule],
+  imports: [RouterOutlet, RouterLink, DrawerModule, ButtonModule, AvatarModule, TooltipModule, DividerModule, ToastModule, RouterLinkActive],
   templateUrl: './main.html',
   styleUrl: './main.scss'
 })

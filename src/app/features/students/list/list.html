@@ -1,0 +1,66 @@
+<p-card>
+  <div class="flex align-items-center justify-content-between mb-3">
+    <div class="text-lg font-semibold">Μαθητές</div>
+    <button pButton icon="pi pi-user-plus" label="Νέα εγγραφή" (click)="goNew()"></button>
+  </div>
+
+  <div class="flex gap-2 mb-3">
+    <input
+      pInputText
+      type="text"
+      placeholder="Αναζήτηση ονόματος/τηλ/email"
+      [ngModel]="q()"
+      (ngModelChange)="q.set($event)"
+      (keyup.enter)="search()"
+    />
+    <button pButton icon="pi pi-search" label="Αναζήτηση" (click)="search()"></button>
+  </div>
+
+  @if (!loading()) {
+    <p-table
+      [value]="rows()"
+      [paginator]="true"
+      [rows]="pageSize()"
+      [totalRecords]="total()"
+      [first]="(page() - 1) * pageSize()"
+      [lazy]="true"
+      (onPage)="onLazyLoad($event)"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Ονοματεπώνυμο</th>
+          <th>Email</th>
+          <th>Τηλέφωνο</th>
+          <th>Επίπεδο</th>
+          <th>Δημιουργήθηκε</th>
+          <th style="width: 6rem;"></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-r>
+        <tr>
+          <td>{{ r.name }}</td>
+          <td>{{ r.email || '—' }}</td>
+          <td>{{ r.phone || '—' }}</td>
+          <td>{{ r.level || '—' }}</td>
+          <td>{{ r.created_at ? (r.created_at | date:'dd/MM/yyyy') : '—' }}</td>
+          <td>
+            <button pButton size="small" label="Προβολή" (click)="openStudent(r.id)"></button>
+          </td>
+          <!-- <td><a [routerLink]="['/students', r.id]">Προβολή</a></td> -->
+        </tr>
+      </ng-template>
+    </p-table>
+  } @else {
+    <p-skeleton height="10rem" borderRadius="1rem"></p-skeleton>
+  }
+</p-card>
+
+<!-- Detail dialog -->
+<app-student-detail-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [student]="selectedStudent()"
+  (close)="closeDialog()">
+</app-student-detail-dialog>
+

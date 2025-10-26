@@ -23,20 +23,116 @@
 <p-drawer
   [visible]="sidebarOpen()"
   (visibleChange)="sidebarOpen.set($event)"
-  position="start"
+  position="left"
+  [appendTo]="'body'"
+  [style]="{ width: '300px' }"
   modal
   [showCloseIcon]="true"
   [closeOnEscape]="true"
   styleClass="app-sidebar"
 >
-  <nav class="flex flex-column gap-2">
-    <a routerLink="/dashboard" routerLinkActive="active" class="nav-link"><i class="pi pi-home mr-2"></i> Πίνακας</a>
-    <a routerLink="/students"  routerLinkActive="active" class="nav-link"><i class="pi pi-user mr-2"></i> Μαθητές</a>
-    <a routerLink="/instructors" routerLinkActive="active" class="nav-link"><i class="pi pi-users mr-2"></i> Καθηγητές</a>
-    <a routerLink="/sessions" routerLinkActive="active" class="nav-link"><i class="pi pi-calendar mr-2"></i> Μαθήματα</a>
-    <a routerLink="/courses" routerLinkActive="active" class="nav-link"><i class="pi pi-book mr-2"></i> Κύκλοι</a>
+  <nav class="app-nav">
+    <div class="nav-section">
+      <div class="nav-label">Γενικά</div>
+      <a
+        class="nav-link"
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="sidebarOpen.set(false)"
+      >
+        <span class="icon"><i class="pi pi-home"></i></span>
+        <span class="text">Πίνακας</span>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Μαθητές</div>
+      <a
+        class="nav-link"
+        routerLink="/registrations"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="sidebarOpen.set(false)"
+      >
+        <span class="icon"><i class="pi pi-list"></i></span>
+        <span class="text">Λίστα Εγγραφών</span>
+      </a>
+
+
+      <a
+        class="nav-link"
+        routerLink="/students"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="sidebarOpen.set(false)"
+      >
+        <span class="icon"><i class="pi pi-list"></i></span>
+        <span class="text">Λίστα Μαθητών</span>
+      </a>
+
+      <a
+        class="nav-link"
+        routerLink="registrations/new"
+        routerLinkActive="active"
+        (click)="sidebarOpen.set(false)"
+      >
+        <span class="icon"><i class="pi pi-user-plus"></i></span>
+        <span class="text">Νέα εγγραφή</span>
+      </a>
+
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Οργάνωση</div>
+      <a class="nav-link" routerLink="/instructors" routerLinkActive="active" (click)="sidebarOpen.set(false)">
+        <span class="icon"><i class="pi pi-users"></i></span>
+        <span class="text">Καθηγητές</span>
+      </a>
+      <a class="nav-link" routerLink="/sessions" routerLinkActive="active" (click)="sidebarOpen.set(false)">
+        <span class="icon"><i class="pi pi-calendar"></i></span>
+        <span class="text">Μαθήματα</span>
+      </a>
+      <a class="nav-link" routerLink="/courses" routerLinkActive="active" (click)="sidebarOpen.set(false)">
+        <span class="icon"><i class="pi pi-book"></i></span>
+        <span class="text">Κύκλοι</span>
+      </a>
+    </div>
+
+    <div class="nav-footer">
+      <div class="brand-mini">
+        <span class="dot"></span>
+        <span>Tactica</span>
+      </div>
+      <span class="muted">v0.1</span>
+    </div>
   </nav>
+
+  <!-- <nav class="flex flex-column gap-2">
+    <a routerLink="/dashboard"  routerLinkActive="active" class="nav-link" (click)="sidebarOpen.set(false)">
+      <i class="pi pi-home mr-2"></i> Πίνακας
+    </a>
+
+    <div class="text-sm font-semibold text-600 mt-2 mb-1">Μαθητές</div>
+    <a routerLink="/students"     routerLinkActive="active" class="nav-link pl-3" (click)="sidebarOpen.set(false)">
+      <i class="pi pi-list mr-2"></i> Λίστα
+    </a>
+    <a routerLink="/students/new" routerLinkActive="active" class="nav-link pl-3" (click)="sidebarOpen.set(false)">
+      <i class="pi pi-user-plus mr-2"></i> Νέα εγγραφή
+    </a>
+
+    <a routerLink="/instructors" routerLinkActive="active" class="nav-link" (click)="sidebarOpen.set(false)">
+      <i class="pi pi-users mr-2"></i> Καθηγητές
+    </a>
+    <a routerLink="/sessions" routerLinkActive="active" class="nav-link" (click)="sidebarOpen.set(false)">
+      <i class="pi pi-calendar mr-2"></i> Μαθήματα
+    </a>
+    <a routerLink="/courses" routerLinkActive="active" class="nav-link" (click)="sidebarOpen.set(false)">
+      <i class="pi pi-book mr-2"></i> Κύκλοι
+    </a>
+  </nav> -->
 </p-drawer>
+
 
 <main class="page px-3 py-3">
   <router-outlet />

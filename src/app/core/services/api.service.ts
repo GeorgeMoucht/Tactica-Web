@@ -10,9 +10,15 @@ export class ApiService {
     private base = environment.apiBaseUrl;
 
     // Helpers for unwrap
-    get<T>(url: string, options?: object) {
-        return this.http.get<ApiEnvelope<T>>(`${this.base}${url}`, options).pipe(map(r => r.data));
+    get<T>(url: string, opts?: { params?: any; unwrap?: boolean }) {
+        const unwrap = opts?.unwrap !== false; // default true
+        return this.http.get<any>(this.base + url, { params: opts?.params }).pipe(
+            map(res => unwrap ? res.data : res) // pass through envelope if unwrap=false
+        );
     }
+    // get<T>(url: string, options?: object) {
+    //     return this.http.get<ApiEnvelope<T>>(`${this.base}${url}`, options).pipe(map(r => r.data));
+    // }
 
     post<T>(url: string, body?: unknown, options?: object) {
         return this.http.post<ApiEnvelope<T>>(`${this.base}${url}`, body, options).pipe(map(r => r.data));

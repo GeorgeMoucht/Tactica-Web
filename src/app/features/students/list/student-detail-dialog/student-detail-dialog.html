@@ -1,0 +1,228 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '720px' }"
+  header="Λεπτομέρειες Μαθητή"
+  (onHide)="hide()"
+>
+  @if (student) {
+    <!-- Header -->
+    <div class="mb-2 flex align-items-center justify-content-between">
+      <h3 class="m-0">
+        @if (!editMode()) {
+          {{ student.name }}
+        } @else {
+          <div class="flex gap-2">
+            <input pInputText class="w-10rem" placeholder="Όνομα" [formControl]="ctrl('first_name')">
+            <input pInputText class="w-12rem" placeholder="Επώνυμο" [formControl]="ctrl('last_name')">
+          </div>
+        }
+      </h3>
+
+      <div class="flex align-items-center gap-2 text-sm text-600">
+        @if (!editMode()) {
+          <p-tag *ngIf="age(student.birthdate) !== null"
+                 [value]="age(student.birthdate) + ' ετών'"
+                 severity="secondary"
+                 styleClass="text-xs">
+          </p-tag>
+          <span>
+            Ημ/νία γέννησης:
+            {{ student.birthdate ? (student.birthdate | date:'dd/MM/yyyy') : '—' }}
+          </span>
+        } @else {
+        <p-datePicker
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          appendTo="body"
+          [formControl]="ctrl('birthdate')">
+        </p-datePicker>
+        }
+      </div>
+    </div>
+
+    <p-divider></p-divider>
+
+    <div class="grid">
+      <!-- Contact -->
+      <div class="col-12 md:col-6">
+        <div class="font-semibold mb-2">Επικοινωνία</div>
+
+        <div class="line">
+          <span class="label">Email:</span>
+          @if (!editMode()) {
+            <ng-container *ngIf="student.email; else noEmail">
+              <a [href]="'mailto:' + student.email">{{ student.email }}</a>
+            </ng-container>
+            <ng-template #noEmail>—</ng-template>
+          } @else {
+            <input pInputText [formControl]="ctrl('email')" placeholder="name@example.com">
+          }
+        </div>
+
+        <div class="line">
+          <span class="label">Τηλέφωνο:</span>
+          @if (!editMode()) {
+            <ng-container *ngIf="student.phone; else noPhone">
+              <a [href]="'tel:' + student.phone">{{ student.phone }}</a>
+            </ng-container>
+            <ng-template #noPhone>—</ng-template>
+          } @else {
+            <input pInputText [formControl]="ctrl('phone')" placeholder="69xxxxxxxx">
+          }
+        </div>
+
+        <div class="line">
+          <span class="label">Διεύθυνση:</span>
+          @if (!editMode()) {
+            <ng-container *ngIf="student.address?.street || student.address?.city || student.address?.zip; else noAddr">
+              <span class="ml-1">
+                {{ student.address?.street || '' }}
+                {{ student.address?.city ? ', ' + student.address?.city : '' }}
+                {{ student.address?.zip ? ' ' + student.address?.zip : '' }}
+              </span>
+            </ng-container>
+            <ng-template #noAddr>—</ng-template>
+          } @else {
+            <div class="flex flex-column gap-2 w-full">
+              <input pInputText placeholder="Οδός" [formControl]="ctrl('address.street')">
+              <div class="flex gap-2">
+                <input pInputText class="w-full" placeholder="Πόλη" [formControl]="ctrl('address.city')">
+                <input pInputText style="width:8rem" placeholder="ΤΚ" [formControl]="ctrl('address.zip')">
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Studies -->
+      <div class="col-12 md:col-6">
+        <div class="font-semibold mb-2">Σπουδές</div>
+
+        <div class="line align-items-center">
+          <span class="label">Επίπεδο:</span>
+          @if (!editMode()) {
+            <p-tag class="ml-2" [value]="levelLabel(student.level)" [severity]="levelSeverity(student.level)"></p-tag>
+          } @else {
+            <p-select
+              class="ml-2 w-full"
+              [options]="[
+                {label:'Αρχάριος', value:'beginner'},
+                {label:'Μέσος', value:'intermediate'},
+                {label:'Προχωρημένος', value:'advanced'}
+              ]"
+              [formControl]="ctrl('level')">
+            </p-select>
+          }
+        </div>
+
+        <div class="line align-items-start">
+          <span class="label">Ενδιαφέροντα:</span>
+          @if (!editMode()) {
+            <ng-container *ngIf="(student.interests?.length ?? 0) > 0; else noInterests">
+              <span class="ml-2 flex flex-wrap gap-2">
+                <p-tag *ngFor="let i of interestLabels(student.interests)" [value]="i" severity="secondary"></p-tag>
+              </span>
+            </ng-container>
+            <ng-template #noInterests>—</ng-template>
+          } @else {
+            <p-multiSelect
+              class="ml-2 w-full"
+              [options]="[
+                {label:'Ζωγραφική', value:'painting'},
+                {label:'Κεραμική', value:'ceramics'},
+                {label:'Σχέδιο', value:'drawing'}
+              ]"
+              defaultLabel="Επιλογή"
+              [formControl]="ctrl('interests')">
+            </p-multiSelect>
+          }
+        </div>
+
+        <div class="line align-items-center">
+          <span class="label">Media consent:</span>
+          @if (!editMode()) {
+            <p-tag class="ml-2"
+                   [value]="student.consent_media ? 'Ναι' : 'Όχι'"
+                   [severity]="student.consent_media ? 'success' : 'secondary'"></p-tag>
+          } @else {
+            <p-checkbox binary="true" [formControl]="ctrl('consent_media')" inputId="consent_media"></p-checkbox>
+          }
+        </div>
+      </div>
+    </div>
+
+    <p-divider></p-divider>
+
+    <!-- Notes -->
+    <div class="grid">
+      <div class="col-12 md:col-6">
+        <div class="font-semibold mb-2">Σημειώσεις</div>
+        @if (!editMode()) {
+          <div class="whitespace-pre-wrap">{{ student.notes || '—' }}</div>
+        } @else {
+          <textarea class="p-inputtext p-component w-full border border-surface-300 rounded-md p-2"
+                    rows="4"
+                    placeholder="Σημειώσεις"
+                    [formControl]="ctrl('notes')"></textarea>
+        }
+      </div>
+      <div class="col-12 md:col-6">
+        <div class="font-semibold mb-2">Ιατρικές σημειώσεις</div>
+        @if (!editMode()) {
+          <div class="whitespace-pre-wrap">{{ student.medical_note || '—' }}</div>
+        } @else {
+          <textarea class="p-inputtext p-component w-full border border-surface-300 rounded-md p-2"
+                    rows="4"
+                    placeholder="Ιατρικές σημειώσεις"
+                    [formControl]="ctrl('medical_note')"></textarea>
+        }
+      </div>
+    </div>
+
+    <p-divider></p-divider>
+
+    <!-- Guardians -->
+    <div class="font-semibold mb-2">Κηδεμόνας/ες</div>
+    <ng-container *ngIf="student.guardians?.length; else noGuardians">
+      <div class="flex flex-column gap-2">
+        <div *ngFor="let g of student.guardians" class="surface-50 border-round p-2">
+          <div class="font-medium">{{ g.name }}</div>
+          <div class="text-sm flex flex-column gap-1">
+            <div *ngIf="g.email" class="flex align-items-center gap-2">
+              <i class="pi pi-envelope text-color-secondary"></i>
+              <a [href]="'mailto:' + g.email">{{ g.email }}</a>
+            </div>
+            <div *ngIf="g.phone" class="flex align-items-center gap-2">
+              <i class="pi pi-phone text-color-secondary"></i>
+              <a [href]="'tel:' + g.phone">{{ g.phone }}</a>
+            </div>
+            <div *ngIf="g.address?.street || g.address?.city || g.address?.zip" class="flex align-items-start gap-2">
+              <i class="pi pi-map-marker text-color-secondary mt-1"></i>
+              <span>
+                {{ g.address?.street || '' }}
+                {{ g.address?.city ? ', ' + g.address?.city : '' }}
+                {{ g.address?.zip ? ' ' + g.address?.zip : '' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+    <ng-template #noGuardians>—</ng-template>
+  } @else {
+    <div>Φόρτωση...</div>
+  }
+
+  <!-- Footer -->
+  <ng-template pTemplate="footer">
+    @if (!editMode()) {
+      <button pButton label="Επεξεργασία" (click)="enterEdit()"></button>
+      <button pButton label="Κλείσιμο" class="p-button-text" (click)="hide()"></button>
+    } @else {
+      <button pButton label="Ακύρωση" class="p-button-text" (click)="cancelEdit()"></button>
+      <button pButton [disabled]="saving()" [loading]="saving()" label="Αποθήκευση" class="p-button-success" (click)="save()"></button>
+    }
+  </ng-template>
+</p-dialog>

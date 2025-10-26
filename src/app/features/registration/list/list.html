@@ -1,0 +1,57 @@
+<p-card>
+    <div class="flex align-items-center justify-content-between mb-3">
+        <div class="text-lg font-semibold">Εγγραφές</div>
+        <a pButton routerLink="/registrations/new" icon="pi pi-user-plus" label="Νέα εγραφή"></a>
+    </div>
+
+    <div class="flex gap-2 mb-3">
+        <input
+            pInputText
+            type="text"
+            placeholder="Αναζήτηση κηδεμόνα/μαθητή/email/τηλέφωνο"
+            [ngModel]="q()"
+            (ngModelChange)="q.set($event)"
+            (key.enter)="search()"
+        />
+        <button pButton icon="pi pi-search" label="Αναζήτηση" (click)="search()"></button>
+    </div>
+
+    @if (!loading()) {
+        <p-table [value]="rows()">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Ημ/νία</th>
+                    <th>Κηδεμόνας</th>
+                    <th>Επικοινωνία</th>
+                    <th>Μαθητές</th>
+                    <th style="width: 6rem;"></th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-r>
+                <tr>
+                    <td>{{ r.created_at | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ r.guardian_name }}</td>
+                    <td>
+                        <div>{{ r.guardian_home || '-'}}</div>
+                        <div class="text-600 text-sm">{{ r.guardian_email || '' }}</div>
+                    </td>
+                    <td>{{ r.students_summary }}</td>
+                    <td>
+                        <a [routerLink]="['/registrations, r.id']" class="text-primary">Προβολή</a>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+
+        <p-paginator
+            [rows]="pageSize()"
+            [totalRecords]="total()"
+            [first]="(page() - 1)*pageSize()"
+            (onPageChange)="onPage($event)"
+            class="mt-3">
+        </p-paginator>
+    } @else {
+        <p-skeleton height="12rem" borderRadius="1rem"></p-skeleton>
+    }
+</p-card>

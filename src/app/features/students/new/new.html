@@ -1,0 +1,94 @@
+<p-toast></p-toast>
+
+<p-card>
+  <div class="text-lg font-semibold mb-3">Νέα εγγραφή μαθητή</div>
+
+  <div class="grid">
+    <div class="col-12 md:col-6">
+      <label>Ονοματεπώνυμο</label>
+      <input pInputText type="text" [formControl]="form.controls.name" class="w-full" />
+    </div>
+
+    <div class="col-12 md:col-6">
+      <label>Ημερομηνία γέννησης</label>
+      <p-datepicker
+        [showIcon]="true"
+        [iconDisplay]="'input'"
+        [formControl]="form.controls.birthdate"
+        dateFormat="yy-mm-dd"
+        class="w-full">
+      </p-datepicker>
+      <div class="text-600 text-xs mt-1">
+        Κατηγορία: {{ isMinor() ? 'Ανήλικος/η' : 'Ενήλικος/η' }}
+      </div>
+    </div>
+
+    <div class="col-12 md:col-6">
+      <label>Email</label>
+      <input pInputText type="email" [formControl]="form.controls.email" class="w-full" />
+    </div>
+
+    <div class="col-12 md:col-6">
+      <label>Τηλέφωνο</label>
+      <input pInputText type="text" [formControl]="form.controls.phone" class="w-full" />
+    </div>
+
+    <div class="col-12 md:col-4">
+      <label>Οδός</label>
+      <input pInputText type="text" [formControl]="form.controls.address.controls.street" class="w-full" />
+    </div>
+    <div class="col-12 md:col-4">
+      <label>Πόλη</label>
+      <input pInputText type="text" [formControl]="form.controls.address.controls.city" class="w-full" />
+    </div>
+    <div class="col-12 md:col-4">
+      <label>Τ.Κ.</label>
+      <input pInputText type="text" [formControl]="form.controls.address.controls.zip" class="w-full" />
+    </div>
+
+    <div class="col-12 md:col-6">
+      <label>Προτίμηση επικοινωνίας</label>
+      <p-select [options]="contactPrefs" optionLabel="label" optionValue="value"
+                [formControl]="form.controls.preferred_contact" class="w-full">
+      </p-select>
+    </div>
+
+    <div class="col-12 md:col-6">
+      <label>Επίπεδο</label>
+      <p-select [options]="levels" optionLabel="label" optionValue="value"
+                [formControl]="form.controls.level" class="w-full">
+      </p-select>
+    </div>
+
+    <div class="col-12">
+      <label>Ενδιαφέροντα</label>
+      <p-multiSelect [options]="interests" optionLabel="label" optionValue="value"
+                     [formControl]="form.controls.interests" display="chip" class="w-full">
+      </p-multiSelect>
+    </div>
+
+    <div class="col-12">
+      <label>Σημειώσεις</label>
+      <textarea pInputText rows="3" [formControl]="form.controls.notes" class="w-full"></textarea>
+    </div>
+
+    <div class="col-12">
+      <div class="text-md font-semibold mt-3 mb-2">Συναινέσεις</div>
+      <div class="flex align-items-center gap-3 mb-2">
+        <p-checkbox inputId="c1" [binary]="true" [formControl]="form.controls.consent_communication"></p-checkbox>
+        <label for="c1">Συναίνεση επικοινωνίας</label>
+      </div>
+      <div class="flex align-items-center gap-3 mb-2">
+        <p-checkbox inputId="c2" [binary]="true" [formControl]="form.controls.consent_media"></p-checkbox>
+        <label for="c2">Συναίνεση φωτογραφικού υλικού/έργων</label>
+      </div>
+      <label>Ιατρικές σημειώσεις</label>
+      <textarea pInputText rows="2" [formControl]="form.controls.medical_note" class="w-full"></textarea>
+    </div>
+  </div>
+
+  <div class="mt-3 flex justify-content-end gap-2">
+    <a pButton label="Άκυρο" class="p-button-text" routerLink="/students"></a>
+    <button pButton label="Αποθήκευση" icon="pi pi-check" (click)="save()"></button>
+  </div>
+</p-card>
