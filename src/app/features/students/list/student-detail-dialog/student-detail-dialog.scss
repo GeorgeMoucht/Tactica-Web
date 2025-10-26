@@ -1,0 +1,45 @@
+.header-strip {
+  display: flex; align-items: center; gap: .75rem;
+  .avatar {
+    width: 42px; height: 42px; border-radius: 999px;
+    display: grid; place-items: center;
+    font-weight: 600;
+    background: var(--p-primary-50);
+    color: var(--p-primary-700);
+  }
+  .title-group .sub { font-size: .85rem; }
+  .age { margin-left: .5rem; }
+}
+
+.info-grid .block { padding-right: .5rem; }
+
+.block-title {
+  font-weight: 600; margin-bottom: .5rem;
+  display: flex; align-items: center;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: .5rem; padding: .25rem 0;
+  .label { color: var(--p-text-muted-color); }
+  .value a { color: var(--p-primary-color); text-decoration: none; }
+}
+
+.chips p-chip { margin-right: .25rem; margin-bottom: .25rem; }
+
+.guardian-card {
+  border: 1px solid var(--p-content-border-color);
+  border-radius: .75rem;
+  padding: .75rem;
+  background: var(--p-content-background);
+  .gc-title { font-weight: 600; margin-bottom: .25rem; }
+  .gc-row { display:flex; align-items:center; gap:.25rem; font-size: .9rem; }
+  .muted { color: var(--p-text-muted-color); font-size: .85rem; }
+}
+
+.prewrap { white-space: pre-wrap; }
+.muted { color: var(--p-text-muted-color); }
+
+.line { display: flex; gap: .5rem; margin-bottom: .25rem; }
+.label { color: var(--p-text-muted-color, var(--p-text-color-secondary)); min-width: 6rem; }

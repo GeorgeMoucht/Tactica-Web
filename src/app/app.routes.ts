@@ -1,17 +1,35 @@
+// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { MainLayout } from './layouts/main/main';
+import { Login } from './features/auth/login/login';
+import { Register } from './features/auth/register/register';
+import { Dashboard } from './features/dashboard/dashboard';
+import { StudentsList } from './features/students/list/list';
+import { NewStudent } from './features/students/new/new';
+import { RegistrationNew } from './features/registration/new/new';
+import { RegistrationList } from './features/registration/list/list';
 
 export const routes: Routes = [
-    { path: '', pathMatch: 'full', redirectTo: 'auth/login' },
-    
-    { path: 'auth/login', loadComponent: () => import('./features/auth/login/login').then(m => m.Login) },
-    { path: 'auth/register', loadComponent: () => import('./features/auth/register/register').then(m => m.Register) },
+  { path: 'auth/login', component: Login },
+  { path: 'auth/register', component: Register },
 
-    {
-        path: 'dashboard',
-        canActivate: [authGuard],
-        loadComponent: () => import('./features/dashboard/dashboard').then(m => m.Dashboard)
-    },
+  {
+    path: '',
+    component: MainLayout,
+    canActivate: [authGuard],
+    children: [
+      { path: 'dashboard', component: Dashboard },
+      { path: 'students', component: StudentsList },
+      { path: 'students/new', component: NewStudent },
+      // placeholders for next features:
+      // { path: 'students', loadComponent: () => import('./features/students/list').then(m => m.StudentsList) },
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      
+      { path: 'registrations', component: RegistrationList},
+      { path: 'registrations/new', component: RegistrationNew }
+    ]
+  },
 
-    { path: '**', redirectTo: 'auth/login' }
+  { path: '**', redirectTo: '' }
 ];
