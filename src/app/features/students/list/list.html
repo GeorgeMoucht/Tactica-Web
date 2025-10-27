@@ -44,10 +44,18 @@
           <td>{{ r.phone || '—' }}</td>
           <td>{{ r.level || '—' }}</td>
           <td>{{ r.created_at ? (r.created_at | date:'dd/MM/yyyy') : '—' }}</td>
-          <td>
-            <button pButton size="small" label="Προβολή" (click)="openStudent(r.id)"></button>
+          <td class="text-center">
+            <button 
+              pButton
+              icon="pi pi-eye"
+              severity="secondary"
+              rounded
+              outlined
+              (click)="openStudent(r.id)"
+              pTooltip="Προβολή λεπτομερειών"
+              tooltipPosition="top">
+            </button>
           </td>
-          <!-- <td><a [routerLink]="['/students', r.id]">Προβολή</a></td> -->
         </tr>
       </ng-template>
     </p-table>
