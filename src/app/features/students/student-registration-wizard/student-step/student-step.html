@@ -1,0 +1,100 @@
+<!-- Bind the whole step to the incoming FormGroup -->
+<div class="grid" [formGroup]="form">
+  <div class="col-12 md:col-6">
+    <label>Ονοματεπώνυμο</label>
+    <input pInputText type="text" formControlName="name" class="w-full" />
+  </div>
+
+  <div class="col-12 md:col-6">
+    <label>Ημερομηνία γέννησης</label>
+    <p-datepicker
+      [showIcon]="true"
+      [iconDisplay]="'input'"
+      formControlName="birthdate"
+      dateFormat="yy-mm-dd"
+      class="w-full">
+    </p-datepicker>
+    <div class="text-600 text-xs mt-1">
+      Κατηγορία: {{ isMinor() ? 'Ανήλικος/η' : 'Ενήλικος/η' }}
+    </div>
+  </div>
+
+  <div class="col-12 md:col-6">
+    <label>Email</label>
+    <input pInputText type="email" formControlName="email" class="w-full" />
+  </div>
+
+  <div class="col-12 md:col-6">
+    <label>Τηλέφωνο</label>
+    <input pInputText type="text" formControlName="phone" class="w-full" />
+  </div>
+
+  <!-- Address group wrapped once -->
+  <div class="col-12" formGroupName="address">
+    <div class="grid">
+      <div class="col-12 md:col-4">
+        <label>Οδός</label>
+        <input pInputText type="text" formControlName="street" class="w-full" />
+      </div>
+      <div class="col-12 md:col-4">
+        <label>Πόλη</label>
+        <input pInputText type="text" formControlName="city" class="w-full" />
+      </div>
+      <div class="col-12 md:col-4">
+        <label>Τ.Κ.</label>
+        <input pInputText type="text" formControlName="zip" class="w-full" />
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 md:col-6">
+    <label>Προτίμηση επικοινωνίας</label>
+    <p-select
+      [options]="contactPrefs"
+      optionLabel="label"
+      optionValue="value"
+      formControlName="preferred_contact"
+      class="w-full">
+    </p-select>
+  </div>
+
+  <div class="col-12 md:col-6">
+    <label>Επίπεδο</label>
+    <p-select
+      [options]="levels"
+      optionLabel="label"
+      optionValue="value"
+      formControlName="level"
+      class="w-full">
+    </p-select>
+  </div>
+
+  <div class="col-12">
+    <label>Ενδιαφέροντα</label>
+    <p-multiSelect
+      [options]="interests"
+      optionLabel="label"
+      optionValue="value"
+      formControlName="interests"
+      display="chip"
+      class="w-full">
+    </p-multiSelect>
+  </div>
+
+  <div class="col-12">
+    <label>Σημειώσεις</label>
+    <textarea pTextarea rows="3" formControlName="notes" class="w-full"></textarea>
+  </div>
+
+  <div class="col-12">
+    <div class="text-md font-semibold mt-3 mb-2">Συναινέσεις</div>
+
+    <div class="flex align-items-center gap-3 mb-2">
+      <p-checkbox inputId="c2" [binary]="true" formControlName="consent_media"></p-checkbox>
+      <label for="c2">Συναίνεση φωτογραφικού υλικού/έργων</label>
+    </div>
+
+    <label>Ιατρικές σημειώσεις</label>
+    <textarea pTextarea rows="2" formControlName="medical_note" class="w-full"></textarea>
+  </div>
+</div>

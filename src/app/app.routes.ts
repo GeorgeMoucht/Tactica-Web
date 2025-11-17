@@ -9,6 +9,7 @@ import { StudentsList } from './features/students/list/list';
 import { NewStudent } from './features/students/new/new';
 import { RegistrationNew } from './features/registration/new/new';
 import { RegistrationList } from './features/registration/list/list';
+import { StudentRegistrationWizard } from './features/students/student-registration-wizard/student-registration-wizard';
 
 export const routes: Routes = [
   { path: 'auth/login', component: Login },
@@ -27,7 +28,8 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       
       { path: 'registrations', component: RegistrationList},
-      { path: 'registrations/new', component: RegistrationNew }
+      // { path: 'registrations/new', component: RegistrationNew }
+      { path: 'registrations/new', component: StudentRegistrationWizard }
     ]
   },
 

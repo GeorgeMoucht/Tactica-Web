@@ -16,7 +16,6 @@ import { TooltipModule } from 'primeng/tooltip';
   selector: 'app-students-list',
   standalone: true,
   imports: [
-    RouterLink,
     DatePipe,
     FormsModule,
     CardModule,

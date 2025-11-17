@@ -1,18 +1,31 @@
 import { Injectable, inject } from '@angular/core';
 import { ApiService } from './api.service';
-import { CreateStudentDTO, StudentDetail, StudentListRow, StudentMinimal, UpdateStudentDTO } from '../models/student.models';
+import { StudentDetail, StudentListRow, UpdateStudentDTO } from '../models/student.models';
 import { PaginatedResponse } from '../models/pagination';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class StudentService {
   private api = inject(ApiService);
 
-  create(dto: CreateStudentDTO) {
-    // backend: POST /api/v1/student -> (id: number)
-    return this.api.post<{ id: number }>('/students', dto);
+  // NEW: used by the wizard now
+  createStudent(payload: {
+    student: any;
+    guardians: any[];
+  }) {
+    // Your ApiService usually unwraps { data }, so the type below is the inner "data"
+    return this.api.post<{ student_id: number; guardian_ids: number[] }>(
+      '/students',
+      payload
+    );
   }
+
+  // (optional) legacy – remove when not needed
+  // createRegistration(payload: { guardian: any; students: any[] }) {
+  //   return this.api.post<{ guardian_id: number; student_ids: number[] }>(
+  //     '/registrations',
+  //     payload
+  //   );
+  // }
 
   get(id: number) {
     return this.api.get<StudentDetail>(`/students/${id}`);
@@ -25,10 +38,12 @@ export class StudentService {
     if (params.pageSize) q.set('pageSize', String(params.pageSize));
     const qs = q.toString() ? `?${q.toString()}` : '';
 
+    // unwrap: false because your ApiService by default unwraps; list needs raw pagination wrapper
     return this.api.get<PaginatedResponse<StudentListRow>>(`/students${qs}`, { unwrap: false });
   }
 
   update(id: number, dto: UpdateStudentDTO) {
-    return this.api.put<StudentDetail>(`/students/${id}`, dto); // ApiService unwraps .data
+    // comment in your code says ApiService unwraps .data, so this returns StudentDetail directly
+    return this.api.put<StudentDetail>(`/students/${id}`, dto);
   }
 }

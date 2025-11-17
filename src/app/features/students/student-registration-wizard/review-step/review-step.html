@@ -1,0 +1,117 @@
+<div class="flex flex-column gap-4">
+  <!-- STUDENT SUMMARY -->
+  <p-card>
+    <div class="text-lg font-semibold mb-2">Πληροφορίες Μαθητή</div>
+
+    <div class="grid">
+      <div class="col-12 md:col-6">
+        <div class="text-600 text-sm">Ονοματεπώνυμο</div>
+        <div class="font-medium">{{ student().name }}</div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="text-600 text-sm">Ημερομηνία γέννησης</div>
+        <div class="font-medium">{{ student().birthdate | date: 'dd/MM/yyyy' }}</div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="text-600 text-sm">Email</div>
+        <div class="font-medium">{{ student().email || '—' }}</div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="text-600 text-sm">Τηλέφωνο</div>
+        <div class="font-medium">{{ student().phone || '—' }}</div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="text-600 text-sm">Διεύθυνση</div>
+        <div class="font-medium">
+          {{ student().address?.street || '—' }},
+          {{ student().address?.city || '' }}
+          {{ student().address?.zip || '' }}
+        </div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="text-600 text-sm">Επίπεδο</div>
+        <div class="font-medium">{{ student().level }}</div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="text-600 text-sm">Επικοινωνία</div>
+        <div class="font-medium">
+          <p-tag
+            [value]="student().preferred_contact ? student().preferred_contact.toUpperCase() : '—'"
+            severity="info">
+          </p-tag>
+        </div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="text-600 text-sm">Ενδιαφέροντα</div>
+        <div class="flex flex-wrap gap-1">
+          <p-tag
+            *ngFor="let i of student().interests"
+            [value]="i"
+            severity="secondary">
+          </p-tag>
+          <span *ngIf="!student().interests?.length">—</span>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="text-600 text-sm">Σημειώσεις</div>
+        <div>{{ student().notes || '—' }}</div>
+      </div>
+    </div>
+  </p-card>
+
+  <!-- CONSENTS -->
+  <p-card>
+    <div class="text-lg font-semibold mb-2">Συναινέσεις</div>
+    <div class="grid">
+
+      <div class="col-12 md:col-6">
+        <div class="text-600 text-sm">Χρήση μέσων</div>
+        <div class="font-medium">
+          <p-tag
+            [severity]="student().consent_media ? 'success' : 'danger'"
+            [value]="student().consent_media ? 'Ναι' : 'Όχι'">
+          </p-tag>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="text-600 text-sm">Ιατρικές σημειώσεις</div>
+        <div>{{ student().medical_note || '—' }}</div>
+      </div>
+    </div>
+  </p-card>
+
+  <!-- GUARDIANS (only if minor) -->
+  <p-card *ngIf="isMinor && guardiansFA.length > 0">
+    <div class="text-lg font-semibold mb-2">Κηδεμόνες</div>
+
+    <div *ngFor="let g of guardiansFA.controls; let i = index"
+         class="border-1 surface-border border-round p-3 mb-3">
+      <div class="font-medium mb-2">
+        {{ g.value.first_name }} {{ g.value.last_name }}
+        <p-tag *ngIf="g.value.id" value="Υπάρχων" severity="secondary" class="ml-2"></p-tag>
+      </div>
+
+      <div class="grid text-sm text-600">
+        <div class="col-6">Σχέση: <span class="text-color">{{ g.value.relation }}</span></div>
+        <div class="col-6">Τηλέφωνο: <span class="text-color">{{ g.value.phone || '—' }}</span></div>
+        <div class="col-6">Email: <span class="text-color">{{ g.value.email || '—' }}</span></div>
+        <div class="col-12">
+          Διεύθυνση:
+          <span class="text-color">
+            {{ g.value.address?.street || '—' }}{{ g.value.address?.city ? ', ' + g.value.address.city : '' }}
+            {{ g.value.address?.zip ? ' ' + g.value.address.zip : '' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </p-card>
+</div>

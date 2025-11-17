@@ -1,0 +1,45 @@
+.wizard-steps {
+  .divider {
+    height: 2px;
+    background: var(--p-surface-300, #e0e0e0);
+    margin: 0 1rem;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    opacity: .6;
+
+    &.active { opacity: 1; }
+    &.done { opacity: 1; }
+
+    &.disabled {
+      opacity: .35;
+      pointer-events: none;
+    }
+
+    .num {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 600;
+      background: var(--p-surface-200, #f0f0f0);
+      color: var(--p-text-color, #1e1e1e);
+    }
+
+    &.active .num {
+      background: var(--p-primary-color, #3F51B5);
+      color: var(--p-primary-color-text, #fff);
+    }
+
+    &.done .num {
+      background: var(--p-primary-300, #7986CB);
+      color: #fff;
+    }
+
+    .label {
+      font-weight: 600;
+      font-size: .95rem;
+    }
+  }
+}

@@ -31,7 +31,6 @@ type NewStudentForm = FormGroup<{
   interests: FormControl<Interest[]>;
   level: FormControl<Level>;
   notes: FormControl<string>;
-  consent_communication: FormControl<boolean>;
   consent_media: FormControl<boolean>;
   medical_note: FormControl<string>;
 }>;
@@ -99,7 +98,6 @@ export class NewStudent {
     interests: this.fb.nonNullable.control<Interest[]>([]),
     level: this.fb.nonNullable.control<Level>('beginner'),
     notes: this.fb.nonNullable.control(''),
-    consent_communication: this.fb.nonNullable.control(true),
     consent_media: this.fb.nonNullable.control(false),
     medical_note: this.fb.nonNullable.control('')
   });
@@ -119,44 +117,54 @@ export class NewStudent {
   save() {
     const v = this.form.getRawValue();
 
+    if (this.form.invalid) {
+      this.toast.add({ severity: 'warn', summary: 'Συμπλήρωσε τα απαιτούμενα πεδία' });
+      return;
+    }
+
     if (!v.email && !v.phone) {
       this.toast.add({ severity: 'warn', summary: 'Συμπλήρωσε email ή τηλέφωνο' });
       return;
     }
 
-    // normalize address: only send if at least one field is non-empty
-    const address: Address | undefined =
+    // only send address if at least one field exists
+    const address: Address | null =
       (v.address.street || v.address.city || v.address.zip)
         ? {
             street: v.address.street || undefined,
             city:   v.address.city   || undefined,
             zip:    v.address.zip    || undefined
           }
-        : undefined;
+        : null;
 
-    const dto: CreateStudentDTO = {
-      name: v.name,
-      birthdate: (v.birthdate as Date).toISOString().slice(0, 10),
-      email: v.email || undefined,
-      phone: v.phone || undefined,
-      address, // typed Address | undefined
-      preferred_contact: v.preferred_contact, // ContactPref
-      interests: v.interests,                 // Interest[]
-      level: v.level,                         // Level
-      notes: v.notes || '',
-      consents: {
-        communication: v.consent_communication,
-        media: v.consent_media,
-        medical_note: v.medical_note || ''
-      }
+    // split full name to first/last for backend
+    const [first, ...rest] = (v.name || '').trim().split(/\s+/);
+
+    const payload = {
+      student: {
+        first_name: first || '-',
+        last_name:  rest.join(' ') || '-',
+        birthdate:  (v.birthdate as Date).toISOString().slice(0, 10),
+        email:      v.email || null,
+        phone:      v.phone || null,
+        address,                              // null or { street, city, zip }
+        level:      v.level || null,
+        interests:  Array.isArray(v.interests) ? v.interests : [],
+        notes:      v.notes || null,
+        medical_note: v.medical_note || null,
+        consent_media: !!v.consent_media
+        // preferred_contact is *not* in the student schema on the backend
+      },
+      guardians: [] as any[] // this simple page creates a student without guardians
     };
 
-    this.api.create(dto).subscribe({
-      next: (res) => {
+    this.api.createStudent(payload).subscribe({
+      next: (res: any) => {
+        const id = res?.student_id ?? res?.data?.student_id;
         this.toast.add({ severity: 'success', summary: 'Η εγγραφή δημιουργήθηκε' });
-        this.router.navigate(['/students', res.id]);
+        if (id) this.router.navigate(['/students', id]);
       },
-      error: (e) => this.toast.add({
+      error: (e: any) => this.toast.add({
         severity: 'error',
         summary: 'Αποτυχία',
         detail: e?.error?.message || 'Κάτι πήγε στραβά'
