@@ -10,6 +10,7 @@ import { NewStudent } from './features/students/new/new';
 import { RegistrationNew } from './features/registration/new/new';
 import { RegistrationList } from './features/registration/list/list';
 import { StudentRegistrationWizard } from './features/students/student-registration-wizard/student-registration-wizard';
+import { GuardiansList } from './features/guardians/list/list';
 
 export const routes: Routes = [
   { path: 'auth/login', component: Login },
@@ -29,7 +30,9 @@ export const routes: Routes = [
       
       { path: 'registrations', component: RegistrationList},
       // { path: 'registrations/new', component: RegistrationNew }
-      { path: 'registrations/new', component: StudentRegistrationWizard }
+      { path: 'registrations/new', component: StudentRegistrationWizard },
+
+      { path: 'guardians', component: GuardiansList},
     ]
   },
 

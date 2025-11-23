@@ -73,6 +73,17 @@
 
       <a
         class="nav-link"
+        routerLink="/guardians"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="sidebarOpen.set(false)"
+      >
+        <span class="icon"><i class="pi pi-users"></i></span>
+        <span class="text">Λίστα Κηδεμόνων</span>
+      </a>
+      
+      <a
+        class="nav-link"
         routerLink="registrations/new"
         routerLinkActive="active"
         (click)="sidebarOpen.set(false)"
