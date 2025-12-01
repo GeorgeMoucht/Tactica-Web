@@ -74,10 +74,10 @@ export class GuardiansList {
   }
 
   openGuardian(id: number) {
-    this.api.get(id).subscribe(g => {
+    this.api.get(id).subscribe((g) => {
       this.selected.set(g);
       this.dialogVisible.set(true);
-    });
+    })
   }
 
   closeDialog() {

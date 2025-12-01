@@ -15,24 +15,33 @@
 
         <div class="line">
           <span class="label">Email:</span>
-          <a *ngIf="guardian.email; else noEmail">{{ guardian.email }}</a>
-          <ng-template #noEmail>—</ng-template>
+          @if (guardian.email) {
+            <a>{{ guardian.email }}</a>
+          } @else {
+            <ng-template>-</ng-template>
+          }
         </div>
 
         <div class="line">
           <span class="label">Τηλέφωνο:</span>
-          <a *ngIf="guardian.phone; else noPhone">{{ guardian.phone }}</a>
-          <ng-template #noPhone>—</ng-template>
+          @if (guardian.phone) {
+            <a>{{ guardian.phone }}</a>
+          } @else {
+            <ng-template>-</ng-template>
+          }
         </div>
 
         <div class="line">
           <span class="label">Διεύθυνση:</span>
-          <span *ngIf="guardian.address; else noAddress">
-            {{ guardian.address.street || '' }}
-            {{ guardian.address.city ? ', ' + guardian.address.city : '' }}
-            {{ guardian.address.zip ? ' ' + guardian.address.zip : '' }}
-          </span>
-          <ng-template #noAddress>—</ng-template>
+          @if (guardian.address) {
+            <span>
+              {{ guardian.address.street || '' }}
+              {{ guardian.address.city ? ', ' + guardian.address.city : '' }}
+              {{ guardian.address.zip ? ' ' + guardian.address.zip : '' }}
+            </span>
+          } @else {
+            <ng-template>-</ng-template>
+          }
         </div>
       </div>
 
@@ -50,18 +59,25 @@
       <div *ngFor="let s of guardian.students" class="surface-50 p-2 border-round">
         <div class="font-medium">{{ s.name }}</div>
         <div class="text-sm text-600 flex flex-column gap-1">
-          <div *ngIf="s.email" class="flex align-items-center gap-2">
-            <i class="pi pi-envelope"></i> {{ s.email }}
-          </div>
-          <div *ngIf="s.phone" class="flex align-items-center gap-2">
-            <i class="pi pi-phone"></i> {{ s.phone }}
-          </div>
+          @if (s.email) {
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-envelope"></i> {{ s.email }}
+            </div>
+          }
+
+          @if (s.phone) {
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-phone"></i> {{ s.phone }}
+            </div>
+          }
         </div>
       </div>
 
-      <div *ngIf="guardian.students.length === 0" class="text-600">
-        Δεν υπάρχουν μαθητές.
-      </div>
+      @if (guardian.students.length === 0) {
+        <div class="text-600">
+          Δεν υπάρχουν μαθητές.
+        </div>
+      }
     </div>
   }
 </p-dialog>

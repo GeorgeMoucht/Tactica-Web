@@ -4,27 +4,33 @@ export interface GuardianListRow {
     email?: string | null;
     phone?: string | null;
     students_count: number;
-    created_at?: string
+    created_at?: string | null;
 }
 
-export interface GuardianStudentRef {
+// Student entry inside a Guardian detail
+export interface GuardianStudentForDetail {
     id: number;
     name: string;
     email?: string | null;
     phone?: string | null;
 }
 
+// Full detail for one guardian
 export interface GuardianDetail {
     id: number;
     name: string;
     email?: string | null;
     phone?: string | null;
-    address?: {
-        street?: string;
-        city?: string;
-        zip?: string;
-    };
 
+    address?: {
+        street?: string | null;
+        city?: string | null;
+        zip?: string | null;
+    } | null;
+
+    preferred_contract?: 'email' | 'sms' | 'phone' | null;
     notes?: string | null;
-    students: GuardianStudentRef[];
+    newsletter_consent?: boolean;
+
+    students: GuardianStudentForDetail[];
 }
