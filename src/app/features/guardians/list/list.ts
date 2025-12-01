@@ -10,6 +10,7 @@ import { TooltipModule } from 'primeng/tooltip';
 
 import { GuardianService } from '../../../core/services/guardian.service';
 import { GuardianDetailDialog } from './guardian-detail-dialog/guardian-detail-dialog';
+import { GuardianTable } from '../guardian-table/guardian-table';
 
 @Component({
   selector: 'app-guardians-list',
@@ -23,7 +24,8 @@ import { GuardianDetailDialog } from './guardian-detail-dialog/guardian-detail-d
     ButtonModule,
     SkeletonModule,
     TooltipModule,
-    GuardianDetailDialog
+    GuardianDetailDialog,
+    GuardianTable
   ],
   templateUrl: './list.html',
   styleUrl: './list.scss'

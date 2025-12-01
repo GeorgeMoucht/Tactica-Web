@@ -12,7 +12,7 @@
       icon="pi pi-users"
       [outlined]="true"
       (onClick)="openPicker()"
-      [disabled]="!existingGuardians.length">
+      [disabled]="loadingExisting">
     </p-button>
   </div>
 </div>
@@ -97,6 +97,41 @@
   header="Επιλογή υπάρχοντα κηδεμόνα"
   [(visible)]="pickerOpen"
   [modal]="true"
+  [style]="{ width: '800px' }"
+  [draggable]="false"
+  appendTo="body">
+
+  <!-- Seach bar -->
+  <div class="flex gap-2 mb-3">
+    <input
+      pInputText
+      class="w-full"
+      type="text"
+      placeholder="Αναζήτηση ονόματος/τηλ/email"
+      [(ngModel)]="filter"/>
+  </div>
+
+  <!-- Table -->
+  <app-guardian-table
+    [rows]="optionsFiltered()"
+    [loading]="loadingExisting"
+    mode="select"
+    (select)="pickFromRow($event)">
+  </app-guardian-table>
+
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Κλείσιμο"
+      [text]="true"
+      (onClick)="pickerOpen = false">
+    </p-button>
+  </ng-template>
+
+</p-dialog>
+<!-- <p-dialog
+  header="Επιλογή υπάρχοντα κηδεμόνα"
+  [(visible)]="pickerOpen"
+  [modal]="true"
   [style]="{ width: '640px' }"
   [draggable]="false"
   appendTo="body">
@@ -141,4 +176,4 @@
       (onClick)="pickerOpen = false">
     </p-button>
   </ng-template>
-</p-dialog>
+</p-dialog> -->

@@ -1,0 +1,63 @@
+@if (loading) {
+  <p-skeleton height="10rem" borderRadius="1rem"></p-skeleton>
+} @else {
+  <p-table
+    [value]="rows"
+    [paginator]="true"
+    [rows]="10"
+    [style]="{ 'max-height': '360px' }"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Ονοματεπώνυμο</th>
+        <th>Email</th>
+        <th>Τηλέφωνο</th>
+        <th>Μαθητές</th>
+        <th>Δημιουργήθηκε</th>
+        <th style="width:6rem;"></th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-r>
+      <tr>
+        <td>{{ r.name }}</td>
+        <td>{{ r.email || '—' }}</td>
+        <td>{{ r.phone || '—' }}</td>
+        <td>{{ r.students_count }}</td>
+        <td>{{ r.created_at ? (r.created_at | date:'dd/MM/yyyy') : '—' }}</td>
+
+        <td class="text-center">
+          <!-- VIEW MODE (list page) -->
+          <button
+            *ngIf="mode === 'view'"
+            pButton
+            icon="pi pi-eye"
+            severity="secondary"
+            rounded
+            outlined
+            (click)="view.emit(r.id)"
+            pTooltip="Προβολή"
+            tooltipPosition="top">
+          </button>
+
+          <!-- SELECT MODE (wizard dialog) -->
+          <button
+            *ngIf="mode === 'select'"
+            pButton
+            icon="pi pi-check"
+            label="Επιλογή"
+            (click)="select.emit(r)">
+          </button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center text-600">
+          Δεν βρέθηκαν κηδεμόνες.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}

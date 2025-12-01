@@ -15,7 +15,14 @@
         <button pButton icon="pi pi-search" label="Αναζήτηση" (click)="search()"></button>
     </div>
 
-    @if (!loading()) {
+    <!-- Table -->
+    <app-guardian-table
+        [rows]="rows()"
+        [loading]="loading()"
+        mode="view"
+        (view)="openGuardian($event)">
+    </app-guardian-table>
+    <!-- @if (!loading()) {
         <p-table
             [value]="rows()"
             [paginator]="true"
@@ -62,7 +69,7 @@
         </p-table>
     } @else {
         <p-skeleton height="10rem" borderRadius="1rem"></p-skeleton>
-    }
+    } -->
 </p-card>
 
 <app-guardian-detail-dialog
