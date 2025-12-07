@@ -138,7 +138,20 @@ export class StudentRegistrationWizard {
   addGuardian(g?: Partial<GuardianFG['value']>) { this.guardiansFA.push(this.buildGuardianFG(g as any)); }
   removeGuardian(i: number) { this.guardiansFA.removeAt(i); }
 
-  onStepChange(i: number | undefined) { this.currentStep = i ?? 1; }
+  onStepChange(event: any) {
+    const target = event.index;
+
+    // Prevent minors from skipping guardians
+    if (target === 3 && this.isMinor() && this.guardiansFA.length === 0) {
+      this.toast.add({
+        severity: 'warn',
+        summary: 'Απαιτείται τουλάχιστον ένας κηδεμόνας για ανήλικο μαθητή'
+      });
+      return;
+    }
+
+    this.currentStep = target; // allow navigation
+  }
 
   nextStep()  { this.currentStep = Math.min(this.currentStep + 1, 3); }
   prevStep()  { this.currentStep = Math.max(this.currentStep - 1, 1); }

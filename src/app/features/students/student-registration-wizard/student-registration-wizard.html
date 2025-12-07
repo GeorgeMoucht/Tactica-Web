@@ -6,13 +6,14 @@
   <p-stepper
     [(value)]="currentStep"
     [linear]="false"
+    (stepChange)="onStepChange($event)"
     orientation="horizontal"
     class="w-full"
   >
     <p-step-list>
       <p-step [value]="1">Μαθητής</p-step>
       <p-step [value]="2" [disabled]="!isMinor()">Κηδεμόνες</p-step>
-      <p-step [value]="3">Επιβεβαίωση</p-step>
+      <p-step [value]="3" [disabled]="isMinor() && guardiansFA.length === 0">Επιβεβαίωση</p-step>
     </p-step-list>
 
     <p-step-panels>
