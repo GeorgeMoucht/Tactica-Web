@@ -12,7 +12,7 @@
       icon="pi pi-users"
       [outlined]="true"
       (onClick)="openPicker()"
-      [disabled]="loadingExisting">
+      [disabled]="loadingExisting()">
     </p-button>
   </div>
 </div>
@@ -92,7 +92,6 @@
   </div>
 </div>
 
-<!-- Existing guardian picker dialog -->
 <p-dialog
   header="Επιλογή υπάρχοντα κηδεμόνα"
   [(visible)]="pickerOpen"
@@ -114,7 +113,7 @@
   <!-- Table -->
   <app-guardian-table
     [rows]="optionsFiltered()"
-    [loading]="loadingExisting"
+    [loading]="loadingExisting()"
     mode="select"
     (select)="pickFromRow($event)">
   </app-guardian-table>
@@ -128,52 +127,3 @@
   </ng-template>
 
 </p-dialog>
-<!-- <p-dialog
-  header="Επιλογή υπάρχοντα κηδεμόνα"
-  [(visible)]="pickerOpen"
-  [modal]="true"
-  [style]="{ width: '640px' }"
-  [draggable]="false"
-  appendTo="body">
-
-  <div class="flex gap-2 mb-3">
-    <input
-      pInputText
-      class="w-full"
-      placeholder="Αναζήτηση με όνομα / email / τηλέφωνο"
-      [(ngModel)]="filter" />
-  </div>
-
-  <div class="flex flex-column gap-2" style="max-height: 360px; overflow: auto;">
-    <div
-      class="border-1 surface-border border-round p-2 flex justify-content-between align-items-center"
-      *ngFor="let g of optionsFiltered()">
-      <div class="flex flex-column">
-        <div class="font-medium">
-          {{ g.name || (g.first_name || '') + ' ' + (g.last_name || '') }}
-        </div>
-        <div class="text-sm text-600">
-          <span *ngIf="g.email">{{ g.email }}</span>
-          <span *ngIf="g.email && g.phone">&nbsp;•&nbsp;</span>
-          <span *ngIf="g.phone">{{ g.phone }}</span>
-        </div>
-      </div>
-
-      <p-button
-        label="Επιλογή"
-        icon="pi pi-check"
-        (onClick)="pick(g)">
-      </p-button>
-    </div>
-
-    <div *ngIf="!optionsFiltered().length" class="text-600 text-sm">Δεν βρέθηκαν αποτελέσματα.</div>
-  </div>
-
-  <ng-template pTemplate="footer">
-    <p-button
-      label="Κλείσιμο"
-      [text]="true"
-      (onClick)="pickerOpen = false">
-    </p-button>
-  </ng-template>
-</p-dialog> -->

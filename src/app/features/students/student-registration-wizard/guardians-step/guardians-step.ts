@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, computed, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
@@ -76,10 +76,12 @@ export class GuardiansStepComponent {
   /** UI state (plain fields so we can 2-way bind) */
   pickerOpen = false;
   filter = '';
-  loadingExisting = false;
+  // loadingExisting = false;
+  loadingExisting = signal(false);
 
   // existingGuardians: ExistingGuardianOption[] = [];
-  existingGuardians: GuardianListRow[] = [];
+  // existingGuardians: GuardianListRow[] = [];
+  existingGuardians = signal<GuardianListRow[]>([]);
 
 
 
@@ -131,21 +133,23 @@ export class GuardiansStepComponent {
 
   /** Filtered options (computed) */
   optionsFiltered = computed(() => {
-    const q = (this.filter || '').trim().toLowerCase();
-    if (!q) return this.existingGuardians;
+    const q = 
+    // const q = (this.filter || '').trim().toLowerCase();
+    // if (!q) return this.existingGuardians;
 
-    return this.existingGuardians.filter(o => {
-      const name = (o.name ?? '').toLowerCase();
-      return (
-        name.includes(q) ||
-        (o.email ?? '').toLowerCase().includes(q) ||
-        (o.phone ?? '').includes(q)
-      );
-    });
+    // return this.existingGuardians.filter(o => {
+    //   const name = (o.name ?? '').toLowerCase();
+    //   return (
+    //     name.includes(q) ||
+    //     (o.email ?? '').toLowerCase().includes(q) ||
+    //     (o.phone ?? '').includes(q)
+    //   );
+    // });
   });
   
   private loadExistingGuardians() {
-    this.loadingExisting = true;
+    // this.loadingExisting = true;
+    this.loadingExisting.set(true);
 
     this.guardiansApi.list({
       query: '',
@@ -153,13 +157,23 @@ export class GuardiansStepComponent {
       pageSize: 50,
     }).subscribe({
       next: (res) => {
-        this.existingGuardians = res.data as GuardianListRow[];
+        // this.existingGuardians = res.data as GuardianListRow[];
+        this.existingGuardians = res.data.map((g: any) => ({
+          id: g.id,
+          name: `${g.first_name} ${g.last_name}`.trim(),
+          email: g.email,
+          phone: g.phone,
+          students_count: g.students_count ?? 0,
+          created_at: g.created_at
+        }));
       },
       error: () => {
-        this.loadingExisting = false;
+        // this.loadingExisting = false;
+        this.loadingExisting.set(false);
       },
       complete: () => {
-        this.loadingExisting = false;
+        // this.loadingExisting = false;
+        this.loadingExisting.set(false);
       },
     });
   }
