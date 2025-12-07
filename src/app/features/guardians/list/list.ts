@@ -53,7 +53,20 @@ export class GuardiansList {
       pageSize: this.pageSize()
     }).subscribe({
       next: (res) => {
-        this.rows.set(res.data);
+        // this.rows.set(res.data);
+        this.rows.set(
+          res.data.map((g: any) => ({
+            id: g.id,
+            first_name: g.first_name,
+            last_name: g.last_name,
+            name: `${g.first_name} ${g.last_name}`.trim(),
+            email: g.email,
+            phone: g.phone,
+            students_count: g.students_count ?? 0,
+            created_at: g.created_at
+          }))
+        );
+
         this.total.set(res.meta.total);
         this.page.set(res.meta.current_page);
         this.pageSize.set(res.meta.per_page);

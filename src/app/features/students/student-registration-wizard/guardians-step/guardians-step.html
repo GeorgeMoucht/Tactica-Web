@@ -96,21 +96,26 @@
   header="Επιλογή υπάρχοντα κηδεμόνα"
   [(visible)]="pickerOpen"
   [modal]="true"
-  [style]="{ width: '800px' }"
+  [style]="{ 
+    width: '90vw',
+    maxWidth: '1200px',
+    height: '80vh'
+  }"
   [draggable]="false"
   appendTo="body">
 
-  <!-- Seach bar -->
-  <div class="flex gap-2 mb-3">
+  <!-- Search bar: right-aligned, narrow input -->
+  <div class="flex justify-content-end gap-2 mb-3">
     <input
       pInputText
-      class="w-full"
+      class="w-20rem"
       type="text"
       placeholder="Αναζήτηση ονόματος/τηλ/email"
-      [(ngModel)]="filter"/>
+      [ngModel]="filter()"
+      (ngModelChange)="filter.set($event)"
+    />
   </div>
 
-  <!-- Table -->
   <app-guardian-table
     [rows]="optionsFiltered()"
     [loading]="loadingExisting()"
@@ -125,5 +130,4 @@
       (onClick)="pickerOpen = false">
     </p-button>
   </ng-template>
-
 </p-dialog>

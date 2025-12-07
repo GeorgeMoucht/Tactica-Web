@@ -1,10 +1,23 @@
+// export interface GuardianListRow {
+//     id: number;
+//     name: string;
+//     email?: string | null;
+//     phone?: string | null;
+//     students_count: number;
+//     created_at?: string | null;
+// }
+
 export interface GuardianListRow {
     id: number;
-    name: string;
+    first_name: string;
+    last_name: string;
     email?: string | null;
     phone?: string | null;
     students_count: number;
     created_at?: string | null;
+
+    // Keep also the fullname if we want it
+    name?: string;
 }
 
 // Student entry inside a Guardian detail

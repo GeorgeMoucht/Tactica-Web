@@ -2,14 +2,12 @@ import { Component, EventEmitter, Input, Output, computed, inject, signal } from
 import { CommonModule } from '@angular/common';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-// PrimeNG standalone components (v20)
-import { Card } from 'primeng/card';
-import { Button } from 'primeng/button';
+import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
-import { Dialog } from 'primeng/dialog';
-import { Divider } from 'primeng/divider';
-import { Tag } from 'primeng/tag';
+import { DialogModule } from 'primeng/dialog';
+import { DividerModule } from 'primeng/divider';
+import { TagModule } from 'primeng/tag';
 import { FormsModule } from '@angular/forms';
 
 import { GuardianService } from '../../../../core/services/guardian.service';
@@ -48,42 +46,32 @@ export interface ExistingGuardianOption {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    FormsModule,           // <-- for [(ngModel)]
-    Button,
+    FormsModule,
+    ButtonModule,
     InputTextModule,
     SelectModule,
-    Dialog,
-    Divider,
-    Tag,
-    GuardianTable
+    DialogModule,
+    DividerModule,
+    TagModule,
+    GuardianTable,
   ],
   templateUrl: './guardians-step.html',
 })
 export class GuardiansStepComponent {
-  /** The FormArray<GuardianFG> from parent (typed) */
   @Input({ required: true }) guardians!: FormArray<GuardianFG>;
 
-  /** Optional list to pick from */
-  // @Input() existingGuardians: ExistingGuardianOption[] = [];
-
-  /** Events for parent to act on */
   @Output() addNew = new EventEmitter<void>();
   @Output() selectExisting = new EventEmitter<Partial<ExistingGuardianOption>>();
   @Output() remove = new EventEmitter<number>();
 
   private guardiansApi = inject(GuardianService);
 
-  /** UI state (plain fields so we can 2-way bind) */
   pickerOpen = false;
-  filter = '';
-  // loadingExisting = false;
+
+  // 👇 just make filter + loading + existing list signals
+  filter = signal('');
   loadingExisting = signal(false);
-
-  // existingGuardians: ExistingGuardianOption[] = [];
-  // existingGuardians: GuardianListRow[] = [];
   existingGuardians = signal<GuardianListRow[]>([]);
-
-
 
   relations = [
     { label: 'Πατέρας',   value: 'father'   },
@@ -91,18 +79,14 @@ export class GuardiansStepComponent {
     { label: 'Κηδεμόνας', value: 'guardian' },
     { label: 'Άλλο',      value: 'other'    },
   ];
-  
-  /** Typed helpers for template binding */
+
   fg = (i: number) => this.guardians.at(i) as GuardianFG;
   addr = (i: number) => this.fg(i).controls.address as AddressFG;
-  
-  
+
   ngOnInit() {
     this.loadExistingGuardians();
   }
 
-    
-  /** Display helpers */
   displayName(i: number): string {
     const g = this.fg(i);
     const fn = g.controls.first_name.value || '';
@@ -111,7 +95,8 @@ export class GuardiansStepComponent {
   }
 
   openPicker() {
-    this.filter = '';
+    // reset filter when opening
+    this.filter.set('');
     this.pickerOpen = true;
   }
 
@@ -131,24 +116,24 @@ export class GuardiansStepComponent {
     this.remove.emit(i);
   }
 
-  /** Filtered options (computed) */
+  // 👇 use the signal here
   optionsFiltered = computed(() => {
-    const q = 
-    // const q = (this.filter || '').trim().toLowerCase();
-    // if (!q) return this.existingGuardians;
+    const q = this.filter().trim().toLowerCase();
+    const list = this.existingGuardians();
 
-    // return this.existingGuardians.filter(o => {
-    //   const name = (o.name ?? '').toLowerCase();
-    //   return (
-    //     name.includes(q) ||
-    //     (o.email ?? '').toLowerCase().includes(q) ||
-    //     (o.phone ?? '').includes(q)
-    //   );
-    // });
+    if (!q) return list;
+
+    return list.filter(o => {
+      const name = `${o.first_name} ${o.last_name}`.toLowerCase();
+      return (
+        name.includes(q) ||
+        (o.email ?? '').toLowerCase().includes(q) ||
+        (o.phone ?? '').includes(q)
+      );
+    });
   });
-  
+
   private loadExistingGuardians() {
-    // this.loadingExisting = true;
     this.loadingExisting.set(true);
 
     this.guardiansApi.list({
@@ -157,22 +142,23 @@ export class GuardiansStepComponent {
       pageSize: 50,
     }).subscribe({
       next: (res) => {
-        // this.existingGuardians = res.data as GuardianListRow[];
-        this.existingGuardians = res.data.map((g: any) => ({
-          id: g.id,
-          name: `${g.first_name} ${g.last_name}`.trim(),
-          email: g.email,
-          phone: g.phone,
-          students_count: g.students_count ?? 0,
-          created_at: g.created_at
-        }));
+        this.existingGuardians.set(
+          res.data.map((g: any) => ({
+            id: g.id,
+            first_name: g.first_name,
+            last_name: g.last_name,
+            name: `${g.first_name} ${g.last_name}`.trim(),
+            email: g.email,
+            phone: g.phone,
+            students_count: g.students_count ?? 0,
+            created_at: g.created_at,
+          }))
+        );
       },
       error: () => {
-        // this.loadingExisting = false;
         this.loadingExisting.set(false);
       },
       complete: () => {
-        // this.loadingExisting = false;
         this.loadingExisting.set(false);
       },
     });

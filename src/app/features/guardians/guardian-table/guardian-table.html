@@ -9,7 +9,9 @@
   >
     <ng-template pTemplate="header">
       <tr>
-        <th>Ονοματεπώνυμο</th>
+        <!-- <th>Ονοματεπώνυμο</th> -->
+        <th>Όνομα</th>
+        <th>Επώνυμο</th>
         <th>Email</th>
         <th>Τηλέφωνο</th>
         <th>Μαθητές</th>
@@ -20,7 +22,9 @@
 
     <ng-template pTemplate="body" let-r>
       <tr>
-        <td>{{ r.name }}</td>
+        <!-- <td>{{ r.name }}</td> -->
+        <td>{{ r.first_name }}</td>
+        <td>{{ r.last_name }}</td>
         <td>{{ r.email || '—' }}</td>
         <td>{{ r.phone || '—' }}</td>
         <td>{{ r.students_count }}</td>
