@@ -7,7 +7,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { CheckboxModule } from 'primeng/checkbox';
-import { TextareaModule } from 'primeng/textarea'; // 👈 v18+ textarea API
+import { TextareaModule } from 'primeng/textarea';
 
 @Component({
   selector: 'app-student-step',
@@ -20,7 +20,7 @@ import { TextareaModule } from 'primeng/textarea'; // 👈 v18+ textarea API
     SelectModule,
     MultiSelectModule,
     CheckboxModule,
-    TextareaModule, // 👈 needed for pTextarea
+    TextareaModule,
   ],
   templateUrl: './student-step.html',
 })

@@ -39,7 +39,15 @@ export class StudentsList {
   total = signal(0);
 
   loading = signal(false);
-  rows = signal<{ id:number; name:string; email?:string; phone?:string; level?:string|null; created_at?:string }[]>([]);
+  rows = signal<{
+    id:number;
+    name:string;
+    email?:string;
+    phone?:string;
+    level?:string|null;
+    is_member: boolean;
+    created_at?:string;
+  }[]>([]);
 
   dialogVisible = signal(false);
   selectedStudent = signal<StudentDetail | null>(null);

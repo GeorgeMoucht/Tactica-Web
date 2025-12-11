@@ -40,6 +40,16 @@
         </p-datePicker>
         }
       </div>
+
+      <h3 class="m-0">
+        {{ student.name }}
+        <p-tag 
+          [value]="student.is_member ? 'Μέλος' : 'Μη μέλος'" 
+          [severity]="student.is_member ? 'success' : 'secondary'"
+          styleClass="ml-2">
+        </p-tag>
+      </h3>
+
     </div>
 
     <p-divider></p-divider>

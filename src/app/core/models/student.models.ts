@@ -79,6 +79,8 @@ export interface StudentDetail {
   birthdate?: string;
   email?: string;
   phone?: string;
+  is_member?: boolean;
+  registration_date?: string | null;
   address?: Address;
   level?: Level | null;
   interests?: Interest[];

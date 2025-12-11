@@ -50,6 +50,8 @@ type StudentForm = FormGroup<{
   notes: FormControl<string>;
   consent_media: FormControl<boolean>;
   medical_note: FormControl<string>;
+  is_member: FormControl<boolean>;
+  registration_date: FormControl<Date | null>;
   guardians: FormArray<GuardianFG>;
 }>;
 
@@ -120,8 +122,28 @@ export class StudentRegistrationWizard {
     notes: this.fb.control(''),
     consent_media: this.fb.control(false),
     medical_note: this.fb.control(''),
+    is_member: this.fb.control(false),
+    registration_date: new FormControl<Date | null>(null),
     guardians: new FormArray<GuardianFG>([]),
   });
+
+  constructor() {
+    this.form.get('is_member')?.valueChanges.subscribe(isMember => {
+      const regCtrl = this.form.get('registration_date');
+
+      if (isMember) {
+        regCtrl?.addValidators(Validators.required);
+        if (!regCtrl?.value) {
+          regCtrl?.setValue(new Date());
+        }
+      } else {
+        regCtrl?.clearValidators();
+        regCtrl?.setValue(null);
+      }
+      
+      regCtrl?.updateValueAndValidity();
+    });
+  }
 
   get guardiansFA() { return this.form.controls.guardians; }
 
@@ -170,6 +192,8 @@ export class StudentRegistrationWizard {
       first_name: first || '-',
       last_name:  rest.join(' ') || '-',
       birthdate:  (v.birthdate as Date).toISOString().slice(0, 10),
+      is_member: v.is_member ?? false,
+      registration_date: v.registration_date ? v.registration_date.toISOString().slice(0, 10) : null,
       email:      v.email || null,
       phone:      v.phone || null,
       address:    (v.address.street || v.address.city || v.address.zip)

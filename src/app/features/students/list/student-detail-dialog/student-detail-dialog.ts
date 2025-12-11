@@ -90,6 +90,7 @@ export class StudentDetailDialog {
     birthdate: [''],
     email: ['', Validators.email],
     phone: [''],
+    is_member: [false],
     address: this.fb.group({
       street: [''],
       city: [''],
@@ -128,6 +129,7 @@ export class StudentDetailDialog {
       birthdate: birth,
       email: this.student.email ?? '',
       phone: this.student.phone ?? '',
+      is_member: !!this.student.is_member,
       address: {
         street: this.student.address?.street ?? '',
         city: this.student.address?.city ?? '',
