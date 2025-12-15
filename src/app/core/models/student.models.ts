@@ -57,6 +57,7 @@ export interface StudentListRow {
     email?: string;
     phone?: string;
     level?: 'beginner' | 'intermediate' | 'advanced' | null;
+    is_member?: boolean;
     created_at?: string;
 }
 
@@ -97,8 +98,10 @@ export interface UpdateStudentDTO {
     first_name: string;
     last_name: string;
     birthdate?: string | null;         // 'YYYY-MM-DD'
+    registration_date?: string | null;
     email?: string | null;
     phone?: string | null;
+    is_member?: boolean;
     address?: Address | null;
     level?: Level | null;
     interests?: Interest[] | null;

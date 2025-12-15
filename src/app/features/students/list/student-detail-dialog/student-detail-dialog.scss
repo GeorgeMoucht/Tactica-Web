@@ -43,3 +43,11 @@
 
 .line { display: flex; gap: .5rem; margin-bottom: .25rem; }
 .label { color: var(--p-text-muted-color, var(--p-text-color-secondary)); min-width: 6rem; }
+
+
+.membership-box {
+  background: var(--surface-50);
+  border: 1px solid var(--surface-200);
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}

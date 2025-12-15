@@ -67,6 +67,33 @@
     </div>
   </p-card>
 
+  <!-- Membership -->
+  <p-card>
+    <div class="text-lg font-semibold mb-2">Κατάσταση Μέλους</div>
+
+    <div class="grid">
+      <div class="col-12 md:col-6">
+        <div class="text-600 text-sm">Μέλος</div>
+        <div class="font-medium">
+          <p-tag
+            [severity]="student().is_member ? 'success' : 'secondary'"
+            [value]="student().is_member ? 'Ναι' : 'Όχι'">
+          </p-tag>
+        </div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="text-600 text-sm">Ημερομηνία Εγγραφής</div>
+        <div class="font-medium">
+          <ng-container *ngIf="student().is_member && student().registration_date; else noReg">
+            {{ student().registration_date | date:'dd/MM/yyyy' }}
+          </ng-container>
+          <ng-template #noReg>—</ng-template>
+        </div>
+      </div>
+    </div>
+  </p-card>
+
   <!-- CONSENTS -->
   <p-card>
     <div class="text-lg font-semibold mb-2">Συναινέσεις</div>

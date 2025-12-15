@@ -2,24 +2,30 @@
   [(visible)]="visible"
   [modal]="true"
   [draggable]="false"
-  [style]="{ width: '720px' }"
+  [style]="{ width: '860px', maxWidth: '95vw' }"
   header="Λεπτομέρειες Μαθητή"
   (onHide)="hide()"
 >
   @if (student) {
     <!-- Header -->
     <div class="mb-2 flex align-items-center justify-content-between">
-      <h3 class="m-0">
-        @if (!editMode()) {
-          {{ student.name }}
-        } @else {
-          <div class="flex gap-2">
-            <input pInputText class="w-10rem" placeholder="Όνομα" [formControl]="ctrl('first_name')">
-            <input pInputText class="w-12rem" placeholder="Επώνυμο" [formControl]="ctrl('last_name')">
-          </div>
-        }
-      </h3>
 
+      <!-- LEFT: Name + Membership Badge -->
+      <div>
+        <h3 class="m-0 flex align-items-center gap-2">
+
+          @if (!editMode()) {
+            {{ student.name }}
+          } @else {
+            <div class="flex gap-2">
+              <input pInputText class="w-10rem" placeholder="Όνομα" [formControl]="ctrl('first_name')">
+              <input pInputText class="w-12rem" placeholder="Επώνυμο" [formControl]="ctrl('last_name')">
+            </div>
+          }
+        </h3>
+      </div>
+
+      <!-- RIGHT: Birthday & Age -->
       <div class="flex align-items-center gap-2 text-sm text-600">
         @if (!editMode()) {
           <p-tag *ngIf="age(student.birthdate) !== null"
@@ -32,24 +38,56 @@
             {{ student.birthdate ? (student.birthdate | date:'dd/MM/yyyy') : '—' }}
           </span>
         } @else {
-        <p-datePicker
-          dateFormat="dd/mm/yy"
-          [showIcon]="true"
-          appendTo="body"
-          [formControl]="ctrl('birthdate')">
-        </p-datePicker>
+          <p-datePicker
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            appendTo="body"
+            [formControl]="ctrl('birthdate')">
+          </p-datePicker>
         }
       </div>
+    </div>
 
-      <h3 class="m-0">
-        {{ student.name }}
-        <p-tag 
-          [value]="student.is_member ? 'Μέλος' : 'Μη μέλος'" 
-          [severity]="student.is_member ? 'success' : 'secondary'"
-          styleClass="ml-2">
-        </p-tag>
-      </h3>
+    <p-divider></p-divider>
 
+    <div class="membership-box">
+      <div class="font-semibold mb-2">Κατάσταση μέλους</div>
+
+      @if (!editMode()) {
+        <div class="flex align-items-center gap-3">
+          <p-tag
+            [value]="student.is_member ? 'Ενεργό μέλος' : 'Μη μέλος'"
+            [severity]="student.is_member ? 'success' : 'secondary'">
+          </p-tag>
+
+          <span class="text-sm text-600">
+            Ημ/νία εγγραφής:
+            {{ student.registration_date
+              ? (student.registration_date | date:'dd/MM/yyyy')
+              : '—'
+            }}
+          </span>
+        </div>
+      } @else {
+        <div class="flex align-items-center gap-4">
+          <div class="flex align-items-center gap-2">
+            <p-checkbox
+              binary="true"
+              [formControl]="ctrl('is_member')"
+              inputId="is_member">
+            </p-checkbox>
+            <label for="is_member">Ενεργό μέλος</label>
+          </div>
+
+          <p-datePicker
+            appendTo="body"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            [formControl]="ctrl('registration_date')"
+            [disabled]="!ctrl('is_member').value">
+          </p-datePicker>
+        </div>
+      }
     </div>
 
     <p-divider></p-divider>
@@ -144,7 +182,6 @@
                 {label:'Κεραμική', value:'ceramics'},
                 {label:'Σχέδιο', value:'drawing'}
               ]"
-              defaultLabel="Επιλογή"
               [formControl]="ctrl('interests')">
             </p-multiSelect>
           }
@@ -174,7 +211,6 @@
         } @else {
           <textarea class="p-inputtext p-component w-full border border-surface-300 rounded-md p-2"
                     rows="4"
-                    placeholder="Σημειώσεις"
                     [formControl]="ctrl('notes')"></textarea>
         }
       </div>
@@ -185,7 +221,6 @@
         } @else {
           <textarea class="p-inputtext p-component w-full border border-surface-300 rounded-md p-2"
                     rows="4"
-                    placeholder="Ιατρικές σημειώσεις"
                     [formControl]="ctrl('medical_note')"></textarea>
         }
       </div>
@@ -201,15 +236,15 @@
           <div class="font-medium">{{ g.name }}</div>
           <div class="text-sm flex flex-column gap-1">
             <div *ngIf="g.email" class="flex align-items-center gap-2">
-              <i class="pi pi-envelope text-color-secondary"></i>
+              <i class="pi pi-envelope"></i>
               <a [href]="'mailto:' + g.email">{{ g.email }}</a>
             </div>
             <div *ngIf="g.phone" class="flex align-items-center gap-2">
-              <i class="pi pi-phone text-color-secondary"></i>
+              <i class="pi pi-phone"></i>
               <a [href]="'tel:' + g.phone">{{ g.phone }}</a>
             </div>
             <div *ngIf="g.address?.street || g.address?.city || g.address?.zip" class="flex align-items-start gap-2">
-              <i class="pi pi-map-marker text-color-secondary mt-1"></i>
+              <i class="pi pi-map-marker mt-1"></i>
               <span>
                 {{ g.address?.street || '' }}
                 {{ g.address?.city ? ', ' + g.address?.city : '' }}
