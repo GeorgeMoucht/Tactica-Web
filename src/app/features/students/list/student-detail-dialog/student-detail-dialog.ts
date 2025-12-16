@@ -29,14 +29,15 @@ import { StudentService } from '../../../../core/services/student.service';
 const LEVEL_LABELS: Record<'beginner' | 'intermediate' | 'advanced', string> = {
   beginner: 'Αρχάριος',
   intermediate: 'Μέσος',
-  advanced: 'Προχωρημένος'
+  advanced: 'Προχωρημένος',
 };
 
 const INTEREST_LABELS: Record<'painting' | 'ceramics' | 'drawing', string> = {
   painting: 'Ζωγραφική',
   ceramics: 'Κεραμική',
-  drawing: 'Σχέδιο'
+  drawing: 'Σχέδιο',
 };
+
 
 function ageFrom(birthdate?: string | null): number | null {
   if (!birthdate) return null;
@@ -91,6 +92,7 @@ export class StudentDetailDialog {
     email: ['', Validators.email],
     phone: [''],
     is_member: [false],
+    registration_date: [''],
     address: this.fb.group({
       street: [''],
       city: [''],
@@ -103,12 +105,26 @@ export class StudentDetailDialog {
     medical_note: [''],
   });
 
-  /** Helper to return a typed FormControl to fix template type errors */
+  ngOnInit() {
+    this.form.get('is_member')?.valueChanges.subscribe(isMember => {
+      const regCtrl = this.form.get('registration_date');
+
+      if (isMember) {
+        // Auto-set date if empty
+        if (!regCtrl?.value) {
+          regCtrl?.setValue(new Date());
+        }
+      } else {
+        // Clear registration date if not a member
+        regCtrl?.setValue(null);
+      }
+    });
+  }
+
   ctrl(path: string): FormControl {
     return this.form.get(path) as FormControl;
   }
 
-  // UI
   hide() {
     this.visible = false;
     this.visibleChange.emit(false);
@@ -119,17 +135,14 @@ export class StudentDetailDialog {
     if (!this.student) return;
     this.editMode.set(true);
 
-    const birth = this.student.birthdate
-      ? new Date(this.student.birthdate)
-      : null;
-
     this.form.reset({
-      first_name: (this.student as any).first_name ?? this.student.name?.split(' ')[0] ?? '',
-      last_name: (this.student as any).last_name ?? this.student.name?.split(' ').slice(1).join(' ') ?? '',
-      birthdate: birth,
+      first_name: this.student.first_name ?? this.student.name?.split(' ')[0] ?? '',
+      last_name: this.student.last_name ?? this.student.name?.split(' ').slice(1).join(' ') ?? '',
+      birthdate: this.student.birthdate ? new Date(this.student.birthdate) : null,
       email: this.student.email ?? '',
       phone: this.student.phone ?? '',
       is_member: !!this.student.is_member,
+      registration_date: this.student.registration_date ? new Date(this.student.registration_date) : null,
       address: {
         street: this.student.address?.street ?? '',
         city: this.student.address?.city ?? '',
@@ -147,15 +160,15 @@ export class StudentDetailDialog {
     this.editMode.set(false);
   }
 
-  private normalizeBirthdate(val: unknown): string | null {
-    if (!val) return null;
-    if (val instanceof Date) {
-      const y = val.getFullYear();
-      const m = String(val.getMonth() + 1).padStart(2, '0');
-      const d = String(val.getDate()).padStart(2, '0');
+  private normalizeDate(value: any): string | null {
+    if (!value) return null;
+    if (value instanceof Date) {
+      const y = value.getFullYear();
+      const m = String(value.getMonth() + 1).padStart(2, '0');
+      const d = String(value.getDate()).padStart(2, '0');
       return `${y}-${m}-${d}`;
     }
-    return String(val);
+    return String(value);
   }
 
   save() {
@@ -166,23 +179,27 @@ export class StudentDetailDialog {
     }
 
     const raw = this.form.value;
-    const addr = raw.address as { street?: string; city?: string; zip?: string } | null | undefined;
-    const hasAddr = !!(addr && (addr.street || addr.city || addr.zip));
-    const address = hasAddr ? addr : null;
+    const addr = raw.address;
+    const address = (addr.street || addr.city || addr.zip) ? addr : null;
 
     const payload: UpdateStudentDTO = {
       first_name: raw.first_name?.trim(),
       last_name: raw.last_name?.trim(),
-      birthdate: this.normalizeBirthdate(raw.birthdate),
+      birthdate: this.normalizeDate(raw.birthdate),
       email: raw.email?.trim() || null,
       phone: raw.phone?.trim() || null,
+      is_member: !!raw.is_member,
+      registration_date: raw.is_member
+        ? this.normalizeDate(raw.registration_date)
+        : null,
       address,
-      level: (raw.level as any) || null,
-      interests: (raw.interests as any[])?.length ? (raw.interests as any[]) : [],
+      level: raw.level || null,
+      interests: raw.interests ?? [],
       notes: raw.notes || null,
       medical_note: raw.medical_note || null,
       consent_media: !!raw.consent_media,
     };
+
 
     this.saving.set(true);
     this.api.update(this.student.id, payload).subscribe({
@@ -198,11 +215,13 @@ export class StudentDetailDialog {
     });
   }
 
-  // View helpers
   age(b?: string | null) { return ageFrom(b); }
+
   levelLabel(level?: 'beginner' | 'intermediate' | 'advanced' | null) {
-    return level ? LEVEL_LABELS[level] : '—';
+    return level ? LEVEL_LABELS[level] : '-';
   }
+
+
   levelSeverity(level?: 'beginner' | 'intermediate' | 'advanced' | null) {
     return level === 'beginner'
       ? 'info'
@@ -212,9 +231,9 @@ export class StudentDetailDialog {
       ? 'success'
       : 'secondary';
   }
-  interestLabels(list?: Array<'painting' | 'ceramics' | 'drawing'>) {
+
+  interestLabels(list?: Array<'painting' | 'ceramics' | 'drawing'> | null) {
     if (!list || list.length === 0) return [];
-    return list.map(i => INTEREST_LABELS[i]);
+    return list.map(i => INTEREST_LABELS[i] ?? i);
   }
-  guardianName(g?: GuardianBasic) { return g?.name || '—'; }
 }

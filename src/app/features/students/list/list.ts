@@ -11,6 +11,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { StudentDetailDialog } from './student-detail-dialog/student-detail-dialog';
 import { StudentDetail } from '../../../core/models/student.models';
 import { TooltipModule } from 'primeng/tooltip';
+import { TagModule } from 'primeng/tag';
 
 @Component({
   selector: 'app-students-list',
@@ -24,7 +25,8 @@ import { TooltipModule } from 'primeng/tooltip';
     ButtonModule,
     SkeletonModule,
     StudentDetailDialog,
-    TooltipModule
+    TooltipModule,
+    TagModule
   ],
   templateUrl: './list.html',
   styleUrls: ['./list.scss']
