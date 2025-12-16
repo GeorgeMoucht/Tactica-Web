@@ -14,7 +14,7 @@
       dateFormat="yy-mm-dd"
       class="w-full">
     </p-datepicker>
-    <div class="col-12 md:col-6">
+    <!-- <div class="col-12 md:col-6">
       <label>Είναι μέλος;</label>
       <p-checkbox
         binary="true"
@@ -22,8 +22,8 @@
         inputId="isMember">
       </p-checkbox>
       <label for="isMember" class="ml-2">Ναι</label>
-    </div>
-    <div class="col-12 md:col-6" *ngIf="form.get('is_member')?.value">
+    </div> -->
+    <!-- <div class="col-12 md:col-6" *ngIf="form.get('is_member')?.value">
       <label>Ημερομηνία εγγραφής</label>
       <p-datepicker
         [showIcon]="true"
@@ -32,7 +32,7 @@
         dateFormat="yy-mm-dd"
         class="w-full">
       </p-datepicker>
-    </div>
+    </div> -->
     <div class="text-600 text-xs mt-1">
       Κατηγορία: {{ isMinor() ? 'Ανήλικος/η' : 'Ενήλικος/η' }}
     </div>

@@ -61,35 +61,37 @@ export interface StudentListRow {
 }
 
 export interface GuardianBasic {
-  id: number;
-  name: string;
-  email?: string | null;
-  phone?: string | null;
-  preferred_contact?: string | null;
-  address?: Address | null;
+    id: number;
+    name: string;
+    email?: string | null;
+    phone?: string | null;
+    preferred_contact?: string | null;
+    address?: Address | null;
 }
 
 // core/models/student.models.ts
 export interface StudentDetail {
-  id: number;
-  first_name?: string;
-  last_name?: string;
+    id: number;
+    first_name?: string;
+    last_name?: string;
 
-  name: string;
-  birthdate?: string;
-  email?: string;
-  phone?: string;
-  is_member?: boolean;
-  registration_date?: string | null;
-  address?: Address;
-  level?: Level | null;
-  interests?: Interest[];
-  notes?: string;
-  medical_note?: string;
-  consent_media?: boolean;
-  guardians?: GuardianBasic[];
-  created_at?: string;
-  updated_at?: string;
+    name: string;
+    birthdate?: string;
+    email?: string;
+    phone?: string;
+
+    is_member?: boolean;
+
+    address?: Address;
+    level?: Level | null;
+    interests?: Interest[];
+    notes?: string;
+    medical_note?: string;
+    consent_media?: boolean;
+
+    guardians?: GuardianBasic[];
+    created_at?: string;
+    updated_at?: string;
 }
 
 
