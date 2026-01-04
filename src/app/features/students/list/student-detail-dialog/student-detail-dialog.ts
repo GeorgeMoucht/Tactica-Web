@@ -5,7 +5,8 @@ import {
   FormGroup,
   ReactiveFormsModule,
   Validators,
-  FormControl
+  FormControl,
+  FormsModule
 } from '@angular/forms';
 
 import { DialogModule } from 'primeng/dialog';
@@ -65,7 +66,8 @@ function ageFrom(birthdate?: string | null): number | null {
     DatePickerModule,
     SelectModule,
     MultiSelectModule,
-    CheckboxModule
+    CheckboxModule,
+    FormsModule
   ],
   providers: [MessageService],
   templateUrl: './student-detail-dialog.html',
@@ -84,6 +86,16 @@ export class StudentDetailDialog {
 
   editMode = signal(false);
   saving = signal(false);
+  registrationDialogVisible = signal(false);
+
+  // registrationStartDate = signal<Date>(new Date());
+  registrationStartDate: Date = new Date();
+
+
+  registrationPreview = signal<{
+    starts_at: Date;
+    ends_at: Date;
+  } | null>(null);
 
   form: FormGroup = this.fb.group({
     first_name: ['', Validators.required],
@@ -91,8 +103,8 @@ export class StudentDetailDialog {
     birthdate: [''],
     email: ['', Validators.email],
     phone: [''],
-    is_member: [false],
-    registration_date: [''],
+    // is_member: [false],
+    // registration_date: [''],
     address: this.fb.group({
       street: [''],
       city: [''],
@@ -104,22 +116,6 @@ export class StudentDetailDialog {
     notes: [''],
     medical_note: [''],
   });
-
-  ngOnInit() {
-    this.form.get('is_member')?.valueChanges.subscribe(isMember => {
-      const regCtrl = this.form.get('registration_date');
-
-      if (isMember) {
-        // Auto-set date if empty
-        if (!regCtrl?.value) {
-          regCtrl?.setValue(new Date());
-        }
-      } else {
-        // Clear registration date if not a member
-        regCtrl?.setValue(null);
-      }
-    });
-  }
 
   ctrl(path: string): FormControl {
     return this.form.get(path) as FormControl;
@@ -141,8 +137,8 @@ export class StudentDetailDialog {
       birthdate: this.student.birthdate ? new Date(this.student.birthdate) : null,
       email: this.student.email ?? '',
       phone: this.student.phone ?? '',
-      is_member: !!this.student.is_member,
-      registration_date: this.student.registration_date ? new Date(this.student.registration_date) : null,
+      // is_member: !!this.student.is_member,
+      // registration_date: this.student.registration_date ? new Date(this.student.registration_date) : null,
       address: {
         street: this.student.address?.street ?? '',
         city: this.student.address?.city ?? '',
@@ -160,6 +156,64 @@ export class StudentDetailDialog {
     this.editMode.set(false);
   }
 
+  openRegistrationDialog() {
+    const start = new Date();
+    this.registrationStartDate = start;
+    this.registrationPreview.set(this.buildRegistrationPeriod(start));
+    this.registrationDialogVisible.set(true);
+  }
+
+  onRegistrationStartChange(date: Date) {
+    this.registrationPreview.set(this.buildRegistrationPeriod(date));
+  }
+
+  confirmRegistration() {
+    if (this.saving()) return;
+
+    const preview = this.registrationPreview();
+  }
+
+  // confirmRegistration() {
+  //   if (this.saving()) return;
+
+  //   this.saving.set(true);
+
+  //   const preview = this.registrationPreview();
+  //   if (!this.student || !preview) {
+  //     this.saving.set(false);
+  //     return;
+  //   }
+
+  //   // UI ONLY FOR NOW
+  //   console.log('REGISTER ANNUAL:', {
+  //     student_id: this.student.id,
+  //     starts_at: preview.starts_at,
+  //     ends_at: preview.ends_at
+  //   });
+
+  //   this.toast.add({
+  //     severity: 'success',
+  //     summary: 'Προεπισκόπηση',
+  //     detail: 'Η ετήσια εγγραφή είναι έτοιμη για καταχώρηση.',
+  //   });
+
+  //   this.registrationDialogVisible.set(false);
+  //   this.saving.set(false);
+  // }
+
+  private buildRegistrationPeriod(start: Date = new Date()) {
+    const startsAt = new Date(start);
+
+    const endsAt = new Date(startsAt);
+
+    endsAt.setFullYear(endsAt.getFullYear() + 1);
+
+    return {
+      starts_at: startsAt,
+      ends_at: endsAt
+    };
+  }
+
   private normalizeDate(value: any): string | null {
     if (!value) return null;
     if (value instanceof Date) {
@@ -172,26 +226,18 @@ export class StudentDetailDialog {
   }
 
   save() {
-    if (!this.student) return;
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    if (!this.student || this.form.invalid) return;
 
     const raw = this.form.value;
     const addr = raw.address;
     const address = (addr.street || addr.city || addr.zip) ? addr : null;
 
     const payload: UpdateStudentDTO = {
-      first_name: raw.first_name?.trim(),
-      last_name: raw.last_name?.trim(),
+      first_name: raw.first_name.trim(),
+      last_name: raw.last_name.trim(),
       birthdate: this.normalizeDate(raw.birthdate),
       email: raw.email?.trim() || null,
       phone: raw.phone?.trim() || null,
-      is_member: !!raw.is_member,
-      registration_date: raw.is_member
-        ? this.normalizeDate(raw.registration_date)
-        : null,
       address,
       level: raw.level || null,
       interests: raw.interests ?? [],
@@ -200,16 +246,15 @@ export class StudentDetailDialog {
       consent_media: !!raw.consent_media,
     };
 
-
     this.saving.set(true);
     this.api.update(this.student.id, payload).subscribe({
-      next: (updated) => {
+      next: updated => {
         this.student = updated;
-        this.toast.add({ severity: 'success', summary: 'Αποθηκεύτηκε', detail: 'Τα στοιχεία ενημερώθηκαν.' });
+        this.toast.add({ severity: 'success', summary: 'Αποθηκεύτηκε' });
         this.editMode.set(false);
       },
-      error: (err) => {
-        this.toast.add({ severity: 'error', summary: 'Σφάλμα', detail: err?.message || 'Αποτυχία αποθήκευσης.' });
+      error: err => {
+        this.toast.add({ severity: 'error', summary: 'Σφάλμα', detail: err?.message });
       },
       complete: () => this.saving.set(false),
     });
@@ -221,7 +266,6 @@ export class StudentDetailDialog {
     return level ? LEVEL_LABELS[level] : '-';
   }
 
-
   levelSeverity(level?: 'beginner' | 'intermediate' | 'advanced' | null) {
     return level === 'beginner'
       ? 'info'
@@ -232,8 +276,8 @@ export class StudentDetailDialog {
       : 'secondary';
   }
 
+
   interestLabels(list?: Array<'painting' | 'ceramics' | 'drawing'> | null) {
-    if (!list || list.length === 0) return [];
-    return list.map(i => INTEREST_LABELS[i] ?? i);
+    return list?.map(i => INTEREST_LABELS[i]) ?? [];
   }
 }

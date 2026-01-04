@@ -7,19 +7,29 @@
   (onHide)="hide()"
 >
   @if (student) {
+
     <!-- Header -->
     <div class="mb-2 flex align-items-center justify-content-between">
 
-      <!-- LEFT: Name + Membership Badge -->
+      <!-- LEFT: Name -->
       <div>
         <h3 class="m-0 flex align-items-center gap-2">
-
           @if (!editMode()) {
             {{ student.name }}
           } @else {
             <div class="flex gap-2">
-              <input pInputText class="w-10rem" placeholder="Όνομα" [formControl]="ctrl('first_name')">
-              <input pInputText class="w-12rem" placeholder="Επώνυμο" [formControl]="ctrl('last_name')">
+              <input
+                pInputText
+                class="w-10rem"
+                placeholder="Όνομα"
+                [formControl]="ctrl('first_name')"
+              >
+              <input
+                pInputText
+                class="w-12rem"
+                placeholder="Επώνυμο"
+                [formControl]="ctrl('last_name')"
+              >
             </div>
           }
         </h3>
@@ -28,11 +38,12 @@
       <!-- RIGHT: Birthday & Age -->
       <div class="flex align-items-center gap-2 text-sm text-600">
         @if (!editMode()) {
-          <p-tag *ngIf="age(student.birthdate) !== null"
-                 [value]="age(student.birthdate) + ' ετών'"
-                 severity="secondary"
-                 styleClass="text-xs">
-          </p-tag>
+          <p-tag
+            *ngIf="age(student.birthdate) !== null"
+            [value]="age(student.birthdate) + ' ετών'"
+            severity="secondary"
+            styleClass="text-xs"
+          ></p-tag>
           <span>
             Ημ/νία γέννησης:
             {{ student.birthdate ? (student.birthdate | date:'dd/MM/yyyy') : '—' }}
@@ -42,18 +53,20 @@
             dateFormat="dd/mm/yy"
             [showIcon]="true"
             appendTo="body"
-            [formControl]="ctrl('birthdate')">
-          </p-datePicker>
+            [formControl]="ctrl('birthdate')"
+          ></p-datePicker>
         }
       </div>
     </div>
 
     <p-divider></p-divider>
 
+    <!-- MEMBERSHIP (READ-ONLY) -->
     <div class="membership-box">
       <div class="font-semibold mb-2">Κατάσταση μέλους</div>
 
-      @if (!editMode()) {
+      <div class="flex align-items-center justify-content-between gap-3">
+        <!-- LEFT: status -->
         <div class="flex align-items-center gap-3">
           <p-tag
             [value]="student.is_member ? 'Ενεργό μέλος' : 'Μη μέλος'"
@@ -61,38 +74,38 @@
           </p-tag>
 
           <span class="text-sm text-600">
-            Ημ/νία εγγραφής:
-            {{ student.registration_date
-              ? (student.registration_date | date:'dd/MM/yyyy')
-              : '—'
-            }}
+            {{ student.is_member
+              ? 'Η ετήσια εγγραφή είναι ενεργή.'
+              : 'Δεν υπάρχει ενεργή ετήσια εγγραφή.' }}
           </span>
         </div>
-      } @else {
-        <div class="flex align-items-center gap-4">
-          <div class="flex align-items-center gap-2">
-            <p-checkbox
-              binary="true"
-              [formControl]="ctrl('is_member')"
-              inputId="is_member">
-            </p-checkbox>
-            <label for="is_member">Ενεργό μέλος</label>
-          </div>
 
-          <p-datePicker
-            appendTo="body"
-            dateFormat="dd/mm/yy"
-            [showIcon]="true"
-            [formControl]="ctrl('registration_date')"
-            [disabled]="!ctrl('is_member').value">
-          </p-datePicker>
-        </div>
-      }
+        <!-- RIGHT: action -->
+        @if (!student.is_member) {
+          <button
+            pButton
+            icon="pi pi-plus"
+            label="Καταχώρηση ετήσιας συμμετοχής"
+            class="p-button-sm"
+            (click)="openRegistrationDialog()">
+          </button>
+        } @else {
+          <button
+            pButton
+            icon="pi pi-eye"
+            label="Προβολή εγγραφής"
+            class="p-button-sm p-button-text"
+            disabled>
+          </button>
+        }
+      </div>
     </div>
+
 
     <p-divider></p-divider>
 
     <div class="grid">
+
       <!-- Contact -->
       <div class="col-12 md:col-6">
         <div class="font-semibold mb-2">Επικοινωνία</div>
@@ -124,7 +137,8 @@
         <div class="line">
           <span class="label">Διεύθυνση:</span>
           @if (!editMode()) {
-            <ng-container *ngIf="student.address?.street || student.address?.city || student.address?.zip; else noAddr">
+            <ng-container
+              *ngIf="student.address?.street || student.address?.city || student.address?.zip; else noAddr">
               <span class="ml-1">
                 {{ student.address?.street || '' }}
                 {{ student.address?.city ? ', ' + student.address?.city : '' }}
@@ -151,7 +165,11 @@
         <div class="line align-items-center">
           <span class="label">Επίπεδο:</span>
           @if (!editMode()) {
-            <p-tag class="ml-2" [value]="levelLabel(student.level)" [severity]="levelSeverity(student.level)"></p-tag>
+            <p-tag
+              class="ml-2"
+              [value]="levelLabel(student.level)"
+              [severity]="levelSeverity(student.level)"
+            ></p-tag>
           } @else {
             <p-select
               class="ml-2 w-full"
@@ -160,17 +178,21 @@
                 {label:'Μέσος', value:'intermediate'},
                 {label:'Προχωρημένος', value:'advanced'}
               ]"
-              [formControl]="ctrl('level')">
-            </p-select>
+              [formControl]="ctrl('level')"
+            ></p-select>
           }
         </div>
 
         <div class="line align-items-start">
           <span class="label">Ενδιαφέροντα:</span>
           @if (!editMode()) {
-            <ng-container *ngIf="(student.interests?.length ?? 0) > 0; else noInterests">
+            <ng-container *ngIf="student.interests?.length; else noInterests">
               <span class="ml-2 flex flex-wrap gap-2">
-                <p-tag *ngFor="let i of interestLabels(student.interests)" [value]="i" severity="secondary"></p-tag>
+                <p-tag
+                  *ngFor="let i of interestLabels(student.interests)"
+                  [value]="i"
+                  severity="secondary"
+                ></p-tag>
               </span>
             </ng-container>
             <ng-template #noInterests>—</ng-template>
@@ -182,19 +204,25 @@
                 {label:'Κεραμική', value:'ceramics'},
                 {label:'Σχέδιο', value:'drawing'}
               ]"
-              [formControl]="ctrl('interests')">
-            </p-multiSelect>
+              [formControl]="ctrl('interests')"
+            ></p-multiSelect>
           }
         </div>
 
         <div class="line align-items-center">
           <span class="label">Media consent:</span>
           @if (!editMode()) {
-            <p-tag class="ml-2"
-                   [value]="student.consent_media ? 'Ναι' : 'Όχι'"
-                   [severity]="student.consent_media ? 'success' : 'secondary'"></p-tag>
+            <p-tag
+              class="ml-2"
+              [value]="student.consent_media ? 'Ναι' : 'Όχι'"
+              [severity]="student.consent_media ? 'success' : 'secondary'"
+            ></p-tag>
           } @else {
-            <p-checkbox binary="true" [formControl]="ctrl('consent_media')" inputId="consent_media"></p-checkbox>
+            <p-checkbox
+              binary="true"
+              [formControl]="ctrl('consent_media')"
+              inputId="consent_media"
+            ></p-checkbox>
           }
         </div>
       </div>
@@ -209,19 +237,24 @@
         @if (!editMode()) {
           <div class="whitespace-pre-wrap">{{ student.notes || '—' }}</div>
         } @else {
-          <textarea class="p-inputtext p-component w-full border border-surface-300 rounded-md p-2"
-                    rows="4"
-                    [formControl]="ctrl('notes')"></textarea>
+          <textarea
+            class="p-inputtext p-component w-full border border-surface-300 rounded-md p-2"
+            rows="4"
+            [formControl]="ctrl('notes')"
+          ></textarea>
         }
       </div>
+
       <div class="col-12 md:col-6">
         <div class="font-semibold mb-2">Ιατρικές σημειώσεις</div>
         @if (!editMode()) {
           <div class="whitespace-pre-wrap">{{ student.medical_note || '—' }}</div>
         } @else {
-          <textarea class="p-inputtext p-component w-full border border-surface-300 rounded-md p-2"
-                    rows="4"
-                    [formControl]="ctrl('medical_note')"></textarea>
+          <textarea
+            class="p-inputtext p-component w-full border border-surface-300 rounded-md p-2"
+            rows="4"
+            [formControl]="ctrl('medical_note')"
+          ></textarea>
         }
       </div>
     </div>
@@ -243,7 +276,8 @@
               <i class="pi pi-phone"></i>
               <a [href]="'tel:' + g.phone">{{ g.phone }}</a>
             </div>
-            <div *ngIf="g.address?.street || g.address?.city || g.address?.zip" class="flex align-items-start gap-2">
+            <div *ngIf="g.address?.street || g.address?.city || g.address?.zip"
+                 class="flex align-items-start gap-2">
               <i class="pi pi-map-marker mt-1"></i>
               <span>
                 {{ g.address?.street || '' }}
@@ -256,8 +290,6 @@
       </div>
     </ng-container>
     <ng-template #noGuardians>—</ng-template>
-  } @else {
-    <div>Φόρτωση...</div>
   }
 
   <!-- Footer -->
@@ -267,7 +299,83 @@
       <button pButton label="Κλείσιμο" class="p-button-text" (click)="hide()"></button>
     } @else {
       <button pButton label="Ακύρωση" class="p-button-text" (click)="cancelEdit()"></button>
-      <button pButton [disabled]="saving()" [loading]="saving()" label="Αποθήκευση" class="p-button-success" (click)="save()"></button>
+      <button
+        pButton
+        label="Αποθήκευση"
+        class="p-button-success"
+        [loading]="saving()"
+        [disabled]="saving()"
+        (click)="save()"
+      ></button>
     }
+  </ng-template>
+</p-dialog>
+
+
+
+<p-dialog
+  [visible]="registrationDialogVisible()"
+  (visibleChange)="registrationDialogVisible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '420px', maxWidth: '95vw' }"
+  header="Ετήσια εγγραφή"
+  [closable]="true"
+  [dismissableMask]="true"
+>
+  @if (registrationPreview()) {
+
+    <div class="mb-3">
+      <div class="text-sm text-600 mb-1">Μαθητής</div>
+      <div class="font-semibold">{{ student?.name }}</div>
+    </div>
+
+    <p-divider></p-divider>
+
+    <div class="mb-3">
+      <div class="text-sm text-600 mb-1">Έναρξη εγγραφής</div>
+      <p-datePicker
+        [(ngModel)]="registrationStartDate"
+        (ngModelChange)="onRegistrationStartChange($event)"
+        [showIcon]="true"
+        dateFormat="dd/mm/yy"
+        appendTo="body"
+      ></p-datePicker>
+    </div>
+
+    <div class="mb-3">
+      <div class="text-sm text-600 mb-1">Λήξη εγγραφής</div>
+      <div class="font-medium">
+        {{ registrationPreview()!.ends_at | date:'dd/MM/yyyy' }}
+      </div>
+    </div>
+
+    <p-divider></p-divider>
+
+    <div class="text-sm text-600 mb-3 flex align-items-start gap-2">
+      <i class="pi pi-info-circle mt-1"></i>
+      <span>
+        Η ετήσια εγγραφή ισχύει για ένα (1) έτος από την ημερομηνία έναρξης.
+      </span>
+    </div>
+  } @else {
+    <div class="text-sm text-600">Φόρτωση...</div>
+  }
+
+  <ng-template pTemplate="footer">
+    <button
+      pButton
+      label="Ακύρωση"
+      class="p-button-text"
+      (click)="registrationDialogVisible.set(false)"
+    ></button>
+
+    <button
+      pButton
+      label="Καταχώρηση"
+      class="p-button-sm"
+      [disabled]="saving()"
+      (click)="confirmRegistration()"
+    ></button>
   </ng-template>
 </p-dialog>

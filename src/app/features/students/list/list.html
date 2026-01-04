@@ -44,7 +44,10 @@
           <td>{{ r.email || '—' }}</td>
           <td>{{ r.phone || '—' }}</td>
           <td>
-            ----
+            <p-tag
+              [value]="r.is_member ? 'Ναι' : 'Όχι'"
+              [severity]="r.is_member ? 'success' : 'secondary'">
+            </p-tag>
             <!-- <p-tag
               [value]="r.is_member ? 'Ναι' : 'Όχι'"
               [severity]="r.is_member ? 'success' : 'secondary'">
