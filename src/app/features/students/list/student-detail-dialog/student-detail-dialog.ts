@@ -19,6 +19,7 @@ import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { CheckboxModule } from 'primeng/checkbox';
 import { MessageService } from 'primeng/api';
+import { MembershipService } from '../../../../core/services/membership.service';
 
 import {
   GuardianBasic,
@@ -77,6 +78,7 @@ export class StudentDetailDialog {
   private fb = inject(FormBuilder);
   private api = inject(StudentService);
   private toast = inject(MessageService);
+  private memberships = inject(MembershipService);
 
   @Input() visible = false;
   @Input() student: StudentDetail | null = null;
@@ -90,7 +92,6 @@ export class StudentDetailDialog {
 
   // registrationStartDate = signal<Date>(new Date());
   registrationStartDate: Date = new Date();
-
 
   registrationPreview = signal<{
     starts_at: Date;
@@ -168,38 +169,45 @@ export class StudentDetailDialog {
   }
 
   confirmRegistration() {
-    if (this.saving()) return;
+    if (this.saving()) {
+      return;
+    }
 
     const preview = this.registrationPreview();
+    if (!this.student || !preview) {
+      return;
+    }
+
+    this.saving.set(true);
+
+    this.memberships.createAnnual(this.student.id, {
+      starts_at: this.normalizeDate(preview.starts_at)!,
+      ends_at: this.normalizeDate(preview.ends_at)!
+    }).subscribe({
+      next: (res) => {
+        // backend returns updated StudentDetailResource
+        this.student = res.data;
+
+        this.toast.add({
+          severity: 'success',
+          summary: 'Ολοκληρώθηκε',
+          detail: 'Η ετήσια εγγραφή καταχωρήθηκε επιτυχώς.'
+        });
+
+        this.registrationDialogVisible.set(false);
+      },
+      error: (err) => {
+        this.toast.add({
+          severity: 'error',
+          summary: 'Σφάλμα',
+          detail: err?.error?.message ?? 'Αποτυχία καταχώρησης'
+        });
+      },
+      complete: () => {
+        this.saving.set(false);
+      }
+    });
   }
-
-  // confirmRegistration() {
-  //   if (this.saving()) return;
-
-  //   this.saving.set(true);
-
-  //   const preview = this.registrationPreview();
-  //   if (!this.student || !preview) {
-  //     this.saving.set(false);
-  //     return;
-  //   }
-
-  //   // UI ONLY FOR NOW
-  //   console.log('REGISTER ANNUAL:', {
-  //     student_id: this.student.id,
-  //     starts_at: preview.starts_at,
-  //     ends_at: preview.ends_at
-  //   });
-
-  //   this.toast.add({
-  //     severity: 'success',
-  //     summary: 'Προεπισκόπηση',
-  //     detail: 'Η ετήσια εγγραφή είναι έτοιμη για καταχώρηση.',
-  //   });
-
-  //   this.registrationDialogVisible.set(false);
-  //   this.saving.set(false);
-  // }
 
   private buildRegistrationPeriod(start: Date = new Date()) {
     const startsAt = new Date(start);
