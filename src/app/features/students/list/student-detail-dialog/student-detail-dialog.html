@@ -93,9 +93,9 @@
           <button
             pButton
             icon="pi pi-eye"
-            label="Προβολή εγγραφής"
+            label="Προβολή ιστορικού"
             class="p-button-sm p-button-text"
-            disabled>
+            (click)="openHistoryDialog()">
           </button>
         }
       </div>
@@ -379,3 +379,12 @@
     ></button>
   </ng-template>
 </p-dialog>
+
+@if (student) {
+  <app-student-history-dialog
+    [visible]="historyDialogVisible()"
+    (visibleChange)="historyDialogVisible.set($event)"
+    [studentId]="student.id"
+    [memberships]="membershipHistory()">
+  </app-student-history-dialog>
+}

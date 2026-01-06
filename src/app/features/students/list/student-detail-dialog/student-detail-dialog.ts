@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, signal, computed } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -27,6 +27,7 @@ import {
   UpdateStudentDTO
 } from '../../../../core/models/student.models';
 import { StudentService } from '../../../../core/services/student.service';
+import { StudentHistoryDialog } from './student-history-dialog/student-history-dialog';
 
 const LEVEL_LABELS: Record<'beginner' | 'intermediate' | 'advanced', string> = {
   beginner: 'Αρχάριος',
@@ -68,7 +69,8 @@ function ageFrom(birthdate?: string | null): number | null {
     SelectModule,
     MultiSelectModule,
     CheckboxModule,
-    FormsModule
+    FormsModule,
+    StudentHistoryDialog
   ],
   providers: [MessageService],
   templateUrl: './student-detail-dialog.html',
@@ -90,6 +92,8 @@ export class StudentDetailDialog {
   saving = signal(false);
   registrationDialogVisible = signal(false);
 
+  private todayIso = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
   // registrationStartDate = signal<Date>(new Date());
   registrationStartDate: Date = new Date();
 
@@ -97,6 +101,8 @@ export class StudentDetailDialog {
     starts_at: Date;
     ends_at: Date;
   } | null>(null);
+
+  historyDialogVisible = signal(false);
 
   form: FormGroup = this.fb.group({
     first_name: ['', Validators.required],
@@ -116,6 +122,31 @@ export class StudentDetailDialog {
     consent_media: [false, Validators.required],
     notes: [''],
     medical_note: [''],
+  });
+
+  membershipHistory = computed(() => {
+    const s = this.student;
+    if (!s) {
+      return [];
+    }
+
+    // If no entitlements found then init to empty array
+    const entitlements = (s as any).entitlements ?? [];
+    
+    return entitlements
+      .filter((e: any) => e?.product?.type === 'registration') // only membership/registration
+      .map((e: any) => {
+        const starts_at = String(e.starts_at).slice(0, 10);
+        const ends_at = String(e.ends_at).slice(0, 10);
+
+        return {
+          starts_at,
+          ends_at,
+          active: starts_at <= this.todayIso && ends_at >= this.todayIso,
+        };
+      })
+      // newest first
+      .sort((a: any, b: any) => b.starts_at.localeCompare(a.starts_at));
   });
 
   ctrl(path: string): FormControl {
@@ -287,5 +318,9 @@ export class StudentDetailDialog {
 
   interestLabels(list?: Array<'painting' | 'ceramics' | 'drawing'> | null) {
     return list?.map(i => INTEREST_LABELS[i]) ?? [];
+  }
+
+  openHistoryDialog() {
+    this.historyDialogVisible.set(true);
   }
 }

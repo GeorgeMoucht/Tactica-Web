@@ -1,0 +1,49 @@
+<p-dialog
+    [visible]="visible"
+    (visibleChange)="visibleChange.emit($event)"
+    [modal]="true"
+    [draggable]="false"
+    appendTo="body"
+    [style]="{ width: '600px', maxWidth: '95vw' }"
+    header="Ιστορικό Μαθητή"
+    [closable]="true"
+    [dismissableMask]="true"
+>
+    <div class="font-semibold mb-2">Ετήσιες εγγραφές</div>
+
+    @if (memberships.length > 0) {
+
+        <div class="flex flex-column gap-2">
+            <div
+                *ngFor="let m of memberships"
+                class="surface-50 border-round p-3 flex align-items-center justify-content-between"
+            >
+                <div>
+                    <div class="text-sm text-600">
+                        {{ m.starts_at | date: 'dd/MM/yyyy' }}
+                        →
+                        {{ m.ends_at | date: 'dd/MM/yyyy' }}
+                    </div>
+                </div>
+
+                <p-tag
+                    [value]="m.active ? 'Ενεργ' : 'Ληγμένη'"
+                    [severity]="m.active ? 'success' : 'secondary'">
+                </p-tag>
+            </div>
+        </div>
+
+    } @else {
+        <div class="text-sm text-600">Δεν υπάρχει ιστορικό εγγραφών.</div>
+    }
+
+    <ng-template pTemplate="footer">
+        <button
+            pButton
+            label="Κλείσιμο"
+            class="p-button-text"
+            (click)="close()">
+        </button>
+    </ng-template>
+
+</p-dialog>
