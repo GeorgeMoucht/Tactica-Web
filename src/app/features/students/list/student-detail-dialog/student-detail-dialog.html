@@ -384,7 +384,12 @@
   <app-student-history-dialog
     [visible]="historyDialogVisible()"
     (visibleChange)="historyDialogVisible.set($event)"
+    [studentId]="student.id">
+  </app-student-history-dialog>
+  <!-- <app-student-history-dialog
+    [visible]="historyDialogVisible()"
+    (visibleChange)="historyDialogVisible.set($event)"
     [studentId]="student.id"
     [memberships]="membershipHistory()">
-  </app-student-history-dialog>
+  </app-student-history-dialog> -->
 }

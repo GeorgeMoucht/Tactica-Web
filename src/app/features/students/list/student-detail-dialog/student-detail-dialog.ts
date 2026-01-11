@@ -124,30 +124,30 @@ export class StudentDetailDialog {
     medical_note: [''],
   });
 
-  membershipHistory = computed(() => {
-    const s = this.student;
-    if (!s) {
-      return [];
-    }
+  // membershipHistory = computed(() => {
+  //   const s = this.student;
+  //   if (!s) {
+  //     return [];
+  //   }
 
-    // If no entitlements found then init to empty array
-    const entitlements = (s as any).entitlements ?? [];
+  //   // If no entitlements found then init to empty array
+  //   const entitlements = (s as any).entitlements ?? [];
     
-    return entitlements
-      .filter((e: any) => e?.product?.type === 'registration') // only membership/registration
-      .map((e: any) => {
-        const starts_at = String(e.starts_at).slice(0, 10);
-        const ends_at = String(e.ends_at).slice(0, 10);
+  //   return entitlements
+  //     .filter((e: any) => e?.product?.type === 'registration') // only membership/registration
+  //     .map((e: any) => {
+  //       const starts_at = String(e.starts_at).slice(0, 10);
+  //       const ends_at = String(e.ends_at).slice(0, 10);
 
-        return {
-          starts_at,
-          ends_at,
-          active: starts_at <= this.todayIso && ends_at >= this.todayIso,
-        };
-      })
-      // newest first
-      .sort((a: any, b: any) => b.starts_at.localeCompare(a.starts_at));
-  });
+  //       return {
+  //         starts_at,
+  //         ends_at,
+  //         active: starts_at <= this.todayIso && ends_at >= this.todayIso,
+  //       };
+  //     })
+  //     // newest first
+  //     .sort((a: any, b: any) => b.starts_at.localeCompare(a.starts_at));
+  // });
 
   ctrl(path: string): FormControl {
     return this.form.get(path) as FormControl;
