@@ -1,0 +1,78 @@
+<p-card>
+  <div class="flex align-items-center justify-content-between mb-3">
+    <div class="text-lg font-semibold">Τμήματα</div>
+    <button pButton icon="pi pi-plus" label="Νέο τμήμα" (click)="goNew()"></button>
+  </div>
+
+  <div class="flex gap-2 mb-3">
+    <input
+      pInputText
+      type="text"
+      placeholder="Αναζήτηση τίτλου/περιγραφής"
+      [ngModel]="q()"
+      (ngModelChange)="q.set($event)"
+      (keyup.enter)="search()"
+    />
+    <button pButton icon="pi pi-search" label="Αναζήτηση" (click)="search()"></button>
+  </div>
+
+  @if (!loading()) {
+    <p-table
+      [value]="rows()"
+      [paginator]="true"
+      [rows]="pageSize()"
+      [totalRecords]="total()"
+      [first]="(page() - 1) * pageSize()"
+      [lazy]="true"
+      (onPage)="onLazyLoad($event)"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Τίτλος</th>
+          <th>Ημέρα</th>
+          <th>Ώρα</th>
+          <th>Καθηγητής</th>
+          <th>Χωρητικότητα</th>
+          <th style="width: 6rem;"></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-r>
+        <tr>
+          <td class="font-medium">{{ r.title }}</td>
+          <td>{{ dayLabel(r.day_of_week) }}</td>
+          <td>{{ timeRange(r) }}</td>
+          <td>{{ r.teacher?.name || '—' }}</td>
+          <td>
+            @if (r.capacity != null) {
+              <p-tag [value]="r.capacity + ' άτομα'" severity="secondary"></p-tag>
+            } @else {
+              —
+            }
+          </td>
+          <td class="text-center">
+            <button
+              pButton
+              icon="pi pi-eye"
+              severity="secondary"
+              rounded
+              outlined
+              (click)="openClass(r.id)"
+              pTooltip="Προβολή"
+              tooltipPosition="top"
+            ></button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  } @else {
+    <p-skeleton height="10rem" borderRadius="1rem"></p-skeleton>
+  }
+</p-card>
+
+<app-class-detail-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [classItem]="selected()"
+  (close)="closeDialog()">
+</app-class-detail-dialog>

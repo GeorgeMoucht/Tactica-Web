@@ -1,0 +1,113 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '860px', maxWidth: '95vw' }"
+  header="Λεπτομέρειες Τμήματος"
+  (onHide)="hide()"
+>
+  @if (classItem) {
+
+    <div class="mb-2 flex align-items-center justify-content-between">
+      <div>
+        <h3 class="m-0">
+          @if (!editMode()) {
+            {{ classItem.title }}
+          } @else {
+            <input pInputText class="w-20rem" placeholder="Τίτλος" [formControl]="ctrl('title')" />
+          }
+        </h3>
+
+        <div class="text-sm text-600 mt-1">
+          @if (!editMode()) {
+            {{ classItem.description || '—' }}
+          } @else {
+            <input pInputText class="w-full" placeholder="Περιγραφή" [formControl]="ctrl('description')" />
+          }
+        </div>
+      </div>
+
+      <div class="text-sm text-600 flex flex-column align-items-end gap-1">
+        <div>Ημέρα: @if (!editMode()) { {{ classItem.day_of_week || '—' }} } @else { }</div>
+        <div>Ώρα: {{ timeRange() }}</div>
+      </div>
+    </div>
+
+    <p-divider></p-divider>
+
+    <div class="grid">
+
+      <div class="col-12 md:col-6">
+        <div class="font-semibold mb-2">Πρόγραμμα</div>
+
+        <div class="line flex align-items-center gap-2">
+          <span class="label">Ημέρα:</span>
+          @if (!editMode()) {
+            {{ classItem.day_of_week || '—' }}
+          } @else {
+            <p-select class="w-full" [options]="dayOptions" [formControl]="ctrl('day_of_week')"></p-select>
+          }
+        </div>
+
+        <div class="line flex align-items-center gap-2">
+          <span class="label">Έναρξη:</span>
+          @if (!editMode()) {
+            {{ classItem.starts_time ? classItem.starts_time.slice(0,5) : '—' }}
+          } @else {
+            <input pInputText placeholder="HH:MM" class="w-8rem" [formControl]="ctrl('starts_time')" />
+          }
+        </div>
+
+        <div class="line flex align-items-center gap-2">
+          <span class="label">Λήξη:</span>
+          @if (!editMode()) {
+            {{ classItem.ends_time ? classItem.ends_time.slice(0,5) : '—' }}
+          } @else {
+            <input pInputText placeholder="HH:MM" class="w-8rem" [formControl]="ctrl('ends_time')" />
+          }
+        </div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="font-semibold mb-2">Στοιχεία</div>
+
+        <div class="line flex align-items-center gap-2">
+          <span class="label">Καθηγητής:</span>
+          @if (!editMode()) {
+            {{ classItem.teacher?.name || '—' }}
+          } @else {
+            <!-- you will replace this with real teacher dropdown -->
+            <input pInputText class="w-full" placeholder="teacher_id" [formControl]="ctrl('teacher_id')" />
+          }
+        </div>
+
+        <div class="line flex align-items-center gap-2">
+          <span class="label">Χωρητικότητα:</span>
+          @if (!editMode()) {
+            {{ classItem.capacity ?? '—' }}
+          } @else {
+            <input pInputText type="number" class="w-8rem" [formControl]="ctrl('capacity')" />
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    @if (!editMode()) {
+      <button pButton label="Επεξεργασία" (click)="enterEdit()"></button>
+      <button pButton label="Κλείσιμο" class="p-button-text" (click)="hide()"></button>
+    } @else {
+      <button pButton label="Ακύρωση" class="p-button-text" (click)="cancelEdit()"></button>
+      <button
+        pButton
+        label="Αποθήκευση"
+        class="p-button-success"
+        [loading]="saving()"
+        [disabled]="saving()"
+        (click)="save()"
+      ></button>
+    }
+  </ng-template>
+</p-dialog>

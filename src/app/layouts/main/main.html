@@ -100,6 +100,18 @@
         <span class="icon"><i class="pi pi-users"></i></span>
         <span class="text">Καθηγητές</span>
       </a>
+      
+      <a
+        class="nav-link"
+        routerLink="/classes"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="sidebarOpen.set(false)"
+      >
+        <span class="icon"><i class="pi pi-clone"></i></span>
+        <span class="text">Τμήματα</span>
+      </a>
+
       <a class="nav-link" routerLink="/sessions" routerLinkActive="active" (click)="sidebarOpen.set(false)">
         <span class="icon"><i class="pi pi-calendar"></i></span>
         <span class="text">Μαθήματα</span>
