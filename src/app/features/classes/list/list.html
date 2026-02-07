@@ -1,10 +1,16 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
 <p-card>
   <div class="flex align-items-center justify-content-between mb-3">
-    <div class="text-lg font-semibold">Τμήματα</div>
-    <button pButton icon="pi pi-plus" label="Νέο τμήμα" (click)="goNew()"></button>
+    <div class="text-lg font-semibold">Τμήματα & Workshops</div>
+    <div class="flex gap-2 align-items-center">
+      <button pButton icon="pi pi-filter-slash" label="Καθαρισμός" class="p-button-outlined" (click)="clearFilters()"></button>
+      <button pButton icon="pi pi-plus" label="Νέο τμήμα" (click)="openCreate()"></button>
+    </div>
   </div>
 
-  <div class="flex gap-2 mb-3">
+  <div class="flex gap-2 mb-3 flex-wrap align-items-center">
     <input
       pInputText
       type="text"
@@ -16,30 +22,133 @@
     <button pButton icon="pi pi-search" label="Αναζήτηση" (click)="search()"></button>
   </div>
 
-  @if (!loading()) {
-    <p-table
-      [value]="rows()"
-      [paginator]="true"
-      [rows]="pageSize()"
-      [totalRecords]="total()"
-      [first]="(page() - 1) * pageSize()"
-      [lazy]="true"
-      (onPage)="onLazyLoad($event)"
-    >
+  <!-- Skeleton for initial load -->
+  @if (!initialized()) {
+    <div class="flex flex-column gap-3">
+      <p-skeleton height="3rem" borderRadius="0.5rem"></p-skeleton>
+      @for (i of [1,2,3,4,5]; track i) {
+        <p-skeleton height="2.5rem" borderRadius="0.5rem"></p-skeleton>
+      }
+      <div class="flex justify-content-end gap-2 mt-2">
+        <p-skeleton width="6rem" height="2rem" borderRadius="0.5rem"></p-skeleton>
+        <p-skeleton width="8rem" height="2rem" borderRadius="0.5rem"></p-skeleton>
+      </div>
+    </div>
+  }
+
+  <!-- Table (hidden until initialized, then always visible with built-in loading) -->
+  <p-table
+    #dt
+    [value]="rows()"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [totalRecords]="total()"
+    [lazy]="true"
+    [loading]="loading()"
+    [style]="{ display: initialized() ? 'block' : 'none' }"
+    (onLazyLoad)="onLazyLoad($event)"
+  >
       <ng-template pTemplate="header">
         <tr>
-          <th>Τίτλος</th>
-          <th>Ημέρα</th>
+          <th pSortableColumn="title">
+            <p-sortIcon field="title"></p-sortIcon>
+            Τίτλος
+          </th>
+          <th pSortableColumn="type">
+            <p-sortIcon field="type"></p-sortIcon>
+            Τύπος
+            <p-columnFilter field="type" matchMode="equals" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <p-select
+                  [options]="typeOptions"
+                  [ngModel]="value"
+                  (ngModelChange)="filter($event)"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Όλοι οι τύποι"
+                  [showClear]="true"
+                ></p-select>
+              </ng-template>
+            </p-columnFilter>
+          </th>
+          <th pSortableColumn="active">
+            <p-sortIcon field="active"></p-sortIcon>
+            Κατάσταση
+            <p-columnFilter field="active" matchMode="equals" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <p-select
+                  [options]="activeOptions"
+                  [ngModel]="value"
+                  (ngModelChange)="filter($event)"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Όλες οι καταστάσεις"
+                  [showClear]="true"
+                ></p-select>
+              </ng-template>
+            </p-columnFilter>
+          </th>
+          <th pSortableColumn="day_of_week">
+            <p-sortIcon field="day_of_week"></p-sortIcon>
+            Ημέρα
+            <p-columnFilter field="day_of_week" matchMode="equals" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <p-select
+                  [options]="dayOptions"
+                  [ngModel]="value"
+                  (ngModelChange)="filter($event)"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Όλες οι ημέρες"
+                  [showClear]="true"
+                ></p-select>
+              </ng-template>
+            </p-columnFilter>
+          </th>
           <th>Ώρα</th>
-          <th>Καθηγητής</th>
-          <th>Χωρητικότητα</th>
-          <th style="width: 6rem;"></th>
+          <th pSortableColumn="teacher.name">
+            <p-sortIcon field="teacher.name"></p-sortIcon>
+            Καθηγητής
+            <p-columnFilter field="teacher.id" matchMode="equals" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false">
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <p-select
+                  [options]="teachers()"
+                  [ngModel]="value"
+                  (ngModelChange)="filter($event)"
+                  optionLabel="name"
+                  optionValue="id"
+                  placeholder="Όλοι οι καθηγητές"
+                  [showClear]="true"
+                  [filter]="true"
+                  filterPlaceholder="Αναζήτηση..."
+                ></p-select>
+              </ng-template>
+            </p-columnFilter>
+          </th>
+          <th pSortableColumn="capacity">
+            <p-sortIcon field="capacity"></p-sortIcon>
+            Χωρητικότητα
+          </th>
+          <th style="width: 10rem;"></th>
         </tr>
       </ng-template>
 
       <ng-template pTemplate="body" let-r>
         <tr>
           <td class="font-medium">{{ r.title }}</td>
+          <td>
+            <p-tag
+              [value]="r.type === 'workshop' ? 'Workshop' : 'Εβδομαδιαίο'"
+              [severity]="r.type === 'workshop' ? 'warn' : 'info'"
+            ></p-tag>
+          </td>
+          <td>
+            <p-tag
+              [value]="r.active ? 'Ενεργό' : 'Ανενεργό'"
+              [severity]="r.active ? 'success' : 'danger'"
+            ></p-tag>
+          </td>
           <td>{{ dayLabel(r.day_of_week) }}</td>
           <td>{{ timeRange(r) }}</td>
           <td>{{ r.teacher?.name || '—' }}</td>
@@ -51,28 +160,41 @@
             }
           </td>
           <td class="text-center">
-            <button
-              pButton
-              icon="pi pi-eye"
-              severity="secondary"
-              rounded
-              outlined
-              (click)="openClass(r.id)"
-              pTooltip="Προβολή"
-              tooltipPosition="top"
-            ></button>
+            <div class="flex gap-1 justify-content-center">
+              <button
+                pButton
+                icon="pi pi-eye"
+                severity="secondary"
+                rounded
+                outlined
+                size="small"
+                (click)="openClass(r.id)"
+                pTooltip="Προβολή"
+                tooltipPosition="top"
+              ></button>
+              <button
+                pButton
+                icon="pi pi-trash"
+                severity="danger"
+                rounded
+                outlined
+                size="small"
+                (click)="deleteClass(r)"
+                pTooltip="Διαγραφή"
+                tooltipPosition="top"
+              ></button>
+            </div>
           </td>
         </tr>
       </ng-template>
-    </p-table>
-  } @else {
-    <p-skeleton height="10rem" borderRadius="1rem"></p-skeleton>
-  }
+  </p-table>
 </p-card>
 
 <app-class-detail-dialog
   [visible]="dialogVisible()"
   (visibleChange)="dialogVisible.set($event)"
   [classItem]="selected()"
-  (close)="closeDialog()">
+  [mode]="dialogMode()"
+  (close)="closeDialog()"
+  (saved)="onDialogSaved()">
 </app-class-detail-dialog>

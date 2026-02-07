@@ -12,8 +12,6 @@ import { RegistrationList } from './features/registration/list/list';
 import { StudentRegistrationWizard } from './features/students/student-registration-wizard/student-registration-wizard';
 import { GuardiansList } from './features/guardians/list/list';
 import { ClassesList } from './features/classes/list/list';
-import { ClassDetailDialog } from './features/classes/list/class-detail-dialog/class-detail-dialog';
-
 export const routes: Routes = [
   { path: 'auth/login', component: Login },
   { path: 'auth/register', component: Register },
@@ -36,8 +34,7 @@ export const routes: Routes = [
 
       { path: 'guardians', component: GuardiansList},
 
-      { path: 'classes', component: ClassesList },
-      { path: 'classes/new', component: ClassDetailDialog}
+      { path: 'classes', component: ClassesList }
     ]
   },
 

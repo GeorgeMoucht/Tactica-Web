@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
+import { Component, EventEmitter, Input, Output, inject, signal, SimpleChanges, OnChanges } from '@angular/core';
+import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators, FormControl } from '@angular/forms';
 
 import { DialogModule } from 'primeng/dialog';
 import { DividerModule } from 'primeng/divider';
@@ -9,116 +9,290 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { MessageService } from 'primeng/api';
 import { TagModule } from 'primeng/tag';
+import { DatePickerModule } from 'primeng/datepicker';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { ToastModule } from 'primeng/toast';
 
 import { ClassService } from '../../../../core/services/class.service';
-import { ClassDetail, UpsertClassDTO } from '../../../../core/models/class.models';
+import { TeacherService, TeacherOption } from '../../../../core/services/teacher.service';
+import { ClassDetail, ClassType, UpsertClassDTO } from '../../../../core/models/class.models';
 
 @Component({
   selector: 'app-class-detail-dialog',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     DialogModule,
     DividerModule,
     ButtonModule,
     InputTextModule,
     SelectModule,
-    TagModule
+    TagModule,
+    DatePickerModule,
+    ToggleSwitchModule,
+    ToastModule
   ],
   providers: [MessageService],
   templateUrl: './class-detail-dialog.html',
   styleUrl: './class-detail-dialog.scss'
 })
-export class ClassDetailDialog {
+export class ClassDetailDialog implements OnChanges {
   private fb = inject(FormBuilder);
   private api = inject(ClassService);
+  private teacherApi = inject(TeacherService);
   private toast = inject(MessageService);
 
   @Input() visible = false;
   @Input() classItem: ClassDetail | null = null;
+  @Input() mode: 'view' | 'create' = 'view';
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() close = new EventEmitter<void>();
+  @Output() saved = new EventEmitter<void>();
 
   editMode = signal(false);
   saving = signal(false);
+  teachers = signal<TeacherOption[]>([]);
 
   form: FormGroup = this.fb.group({
     title: ['', Validators.required],
     description: [''],
+    type: ['weekly'],
     day_of_week: [null],
     starts_time: [''],
     ends_time: [''],
     capacity: [null],
-    teacher_id: [null]
+    teacher_id: [null],
+    active: [true],
+    sessions: this.fb.array([])
   });
 
   ctrl(path: string): FormControl {
     return this.form.get(path) as FormControl;
   }
 
+  get sessionsArray(): FormArray {
+    return this.form.get('sessions') as FormArray;
+  }
+
+  get typeValue(): ClassType {
+    return this.form.get('type')?.value ?? 'weekly';
+  }
+
+  get dialogHeader(): string {
+    if (this.mode === 'create') return 'Νέο Τμήμα / Workshop';
+    return 'Λεπτομέρειες Τμήματος';
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['mode'] && this.mode === 'create' && this.visible) {
+      this.initCreateMode();
+    }
+  }
+
+  private loadTeachers() {
+    if (this.teachers().length > 0) return;
+    this.teacherApi.list().subscribe({
+      next: (list) => this.teachers.set(list)
+    });
+  }
+
+  private initCreateMode() {
+    this.editMode.set(true);
+    this.loadTeachers();
+    this.form.reset({
+      title: '',
+      description: '',
+      type: 'weekly',
+      day_of_week: null,
+      starts_time: null,
+      ends_time: null,
+      capacity: null,
+      teacher_id: null
+    });
+    this.sessionsArray.clear();
+  }
+
   hide() {
     this.visible = false;
+    this.editMode.set(false);
     this.visibleChange.emit(false);
     this.close.emit();
+  }
+
+  onShow() {
+    if (this.mode === 'create') {
+      this.initCreateMode();
+    }
   }
 
   enterEdit() {
     if (!this.classItem) return;
     this.editMode.set(true);
+    this.loadTeachers();
 
     this.form.reset({
       title: this.classItem.title ?? '',
       description: this.classItem.description ?? '',
+      type: this.classItem.type ?? 'weekly',
       day_of_week: this.classItem.day_of_week ?? null,
-      starts_time: (this.classItem.starts_time ?? '').slice(0, 5),
-      ends_time: (this.classItem.ends_time ?? '').slice(0, 5),
+      starts_time: this.timeStringToDate(this.classItem.starts_time),
+      ends_time: this.timeStringToDate(this.classItem.ends_time),
       capacity: this.classItem.capacity ?? null,
-      teacher_id: this.classItem.teacher?.id ?? null
+      teacher_id: this.classItem.teacher?.id ?? null,
+      active: this.classItem.active ?? true
     });
+
+    // Populate sessions if workshop
+    this.sessionsArray.clear();
+    if (this.classItem.type === 'workshop' && this.classItem.sessions) {
+      for (const s of this.classItem.sessions) {
+        this.sessionsArray.push(this.fb.group({
+          date: [s.date, Validators.required],
+          starts_time: [this.timeStringToDate(s.starts_time), Validators.required],
+          ends_time: [this.timeStringToDate(s.ends_time), Validators.required]
+        }));
+      }
+    }
   }
 
   cancelEdit() {
+    if (this.mode === 'create') {
+      this.hide();
+      return;
+    }
     this.editMode.set(false);
   }
 
-  private normalizeTime(value: any): string | null {
-    if (!value) return null;
-    // expects "HH:MM" from input; keep as is
-    return String(value).slice(0, 5);
+  addSession() {
+    this.sessionsArray.push(this.fb.group({
+      date: [null, Validators.required],
+      starts_time: [null, Validators.required],
+      ends_time: [null, Validators.required]
+    }));
+  }
+
+  removeSession(index: number) {
+    this.sessionsArray.removeAt(index);
+  }
+
+  /** Convert "HH:MM" string to Date object for DatePicker */
+  private timeStringToDate(time: string | null | undefined): Date | null {
+    if (!time) return null;
+    const [hours, minutes] = time.slice(0, 5).split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  }
+
+  /** Convert Date object to "HH:MM" string for backend */
+  private dateToTimeString(date: Date | null | undefined): string | null {
+    if (!date || !(date instanceof Date)) return null;
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   }
 
   save() {
-    if (!this.classItem || this.form.invalid) return;
+    if (this.form.invalid) return;
 
     const raw = this.form.value;
+    const type: ClassType = raw.type ?? 'weekly';
+
+    if (this.mode === 'create') {
+      this.saveCreate(raw, type);
+    } else {
+      this.saveUpdate(raw, type);
+    }
+  }
+
+  private saveCreate(raw: any, type: ClassType) {
+    const payload: UpsertClassDTO = {
+      title: raw.title?.trim(),
+      type,
+      description: raw.description?.trim() || null,
+      capacity: raw.capacity === '' ? null : raw.capacity,
+      teacher_id: raw.teacher_id ?? null,
+    };
+
+    if (type === 'weekly') {
+      payload.day_of_week = raw.day_of_week ?? null;
+      payload.starts_time = this.dateToTimeString(raw.starts_time);
+      payload.ends_time = this.dateToTimeString(raw.ends_time);
+    } else {
+      payload.sessions = (raw.sessions ?? []).map((s: any) => ({
+        date: s.date,
+        starts_time: this.dateToTimeString(s.starts_time),
+        ends_time: this.dateToTimeString(s.ends_time)
+      }));
+    }
+
+    this.saving.set(true);
+    this.api.create(payload).subscribe({
+      next: () => {
+        this.toast.add({ severity: 'success', summary: 'Δημιουργήθηκε' });
+        this.saving.set(false);
+        this.saved.emit();
+        this.hide();
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.toast.add({
+          severity: 'error',
+          summary: 'Σφάλμα',
+          detail: err?.error?.message ?? err?.message ?? 'Αποτυχία δημιουργίας'
+        });
+      }
+    });
+  }
+
+  private saveUpdate(raw: any, type: ClassType) {
+    if (!this.classItem) return;
 
     const payload: Partial<UpsertClassDTO> = {
       title: raw.title?.trim(),
+      type,
       description: raw.description?.trim() || null,
-      day_of_week: raw.day_of_week ?? null,
-      starts_time: this.normalizeTime(raw.starts_time),
-      ends_time: this.normalizeTime(raw.ends_time),
       capacity: raw.capacity === '' ? null : raw.capacity,
-      teacher_id: raw.teacher_id ?? null
+      teacher_id: raw.teacher_id ?? null,
+      active: raw.active ?? true
     };
+
+    if (type === 'weekly') {
+      payload.day_of_week = raw.day_of_week ?? null;
+      payload.starts_time = this.dateToTimeString(raw.starts_time);
+      payload.ends_time = this.dateToTimeString(raw.ends_time);
+      payload.sessions = undefined;
+    } else {
+      payload.day_of_week = null;
+      payload.starts_time = null;
+      payload.ends_time = null;
+      payload.sessions = (raw.sessions ?? []).map((s: any) => ({
+        date: s.date,
+        starts_time: this.dateToTimeString(s.starts_time),
+        ends_time: this.dateToTimeString(s.ends_time)
+      }));
+    }
 
     this.saving.set(true);
     this.api.update(this.classItem.id, payload).subscribe({
       next: (updated) => {
         this.classItem = updated;
+        this.saving.set(false);
         this.toast.add({ severity: 'success', summary: 'Αποθηκεύτηκε' });
         this.editMode.set(false);
+        this.saved.emit();
       },
       error: (err) => {
+        this.saving.set(false);
         this.toast.add({
           severity: 'error',
           summary: 'Σφάλμα',
           detail: err?.error?.message ?? err?.message ?? 'Αποτυχία αποθήκευσης'
         });
-      },
-      complete: () => this.saving.set(false)
+      }
     });
   }
 
@@ -131,6 +305,20 @@ export class ClassDetailDialog {
     { label: 'Σάββατο', value: 6 },
     { label: 'Κυριακή', value: 7 }
   ];
+
+  typeOptions = [
+    { label: 'Εβδομαδιαίο', value: 'weekly' },
+    { label: 'Workshop', value: 'workshop' }
+  ];
+
+  dayLabel(d?: number | null): string {
+    if (!d) return '—';
+    return this.dayOptions.find(o => o.value === d)?.label ?? String(d);
+  }
+
+  typeLabel(t?: string | null): string {
+    return t === 'workshop' ? 'Workshop' : 'Εβδομαδιαίο';
+  }
 
   timeRange() {
     const c = this.classItem;

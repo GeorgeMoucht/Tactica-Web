@@ -1,108 +1,293 @@
+<p-toast position="top-right"></p-toast>
+
 <p-dialog
   [(visible)]="visible"
   [modal]="true"
   [draggable]="false"
-  [style]="{ width: '860px', maxWidth: '95vw' }"
-  header="Λεπτομέρειες Τμήματος"
+  [style]="{ width: editMode() ? '1200px' : '1100px', maxWidth: '95vw' }"
+  [contentStyle]="{ minHeight: editMode() ? '520px' : '450px' }"
+  [header]="dialogHeader"
   (onHide)="hide()"
+  (onShow)="onShow()"
 >
-  @if (classItem) {
+  @if (classItem || mode === 'create') {
 
-    <div class="mb-2 flex align-items-center justify-content-between">
-      <div>
-        <h3 class="m-0">
-          @if (!editMode()) {
-            {{ classItem.title }}
-          } @else {
-            <input pInputText class="w-20rem" placeholder="Τίτλος" [formControl]="ctrl('title')" />
-          }
-        </h3>
+    <!-- ============ VIEW MODE ============ -->
+    @if (!editMode()) {
 
-        <div class="text-sm text-600 mt-1">
-          @if (!editMode()) {
-            {{ classItem.description || '—' }}
-          } @else {
-            <input pInputText class="w-full" placeholder="Περιγραφή" [formControl]="ctrl('description')" />
+      <!-- Header -->
+      <div class="view-header">
+        <div class="flex-1">
+          <div class="view-title">{{ classItem?.title }}</div>
+          <div class="view-description">{{ classItem?.description || 'Χωρίς περιγραφή' }}</div>
+        </div>
+        @if (classItem) {
+          <div class="view-status">
+            <p-tag
+              [value]="typeLabel(classItem.type)"
+              [severity]="classItem.type === 'workshop' ? 'warn' : 'info'"
+              [style]="{ fontSize: '0.95rem', padding: '0.35rem 0.85rem' }"
+            ></p-tag>
+            <p-tag
+              [value]="classItem.active ? 'Ενεργό' : 'Ανενεργό'"
+              [severity]="classItem.active ? 'success' : 'secondary'"
+              [style]="{ fontSize: '0.95rem', padding: '0.35rem 0.85rem' }"
+            ></p-tag>
+          </div>
+        }
+      </div>
+
+      <!-- Info cards row -->
+      @if (classItem) {
+        <div class="info-cards">
+
+          @if (classItem.type !== 'workshop') {
+            <!-- Weekly: Day -->
+            <div class="info-card">
+              <div class="info-card-icon">
+                <i class="pi pi-calendar"></i>
+              </div>
+              <div class="info-card-content">
+                <div class="info-card-label">Ημέρα</div>
+                <div class="info-card-value">{{ dayLabel(classItem.day_of_week) }}</div>
+              </div>
+            </div>
+
+            <!-- Weekly: Time -->
+            <div class="info-card">
+              <div class="info-card-icon">
+                <i class="pi pi-clock"></i>
+              </div>
+              <div class="info-card-content">
+                <div class="info-card-label">Ωράριο</div>
+                <div class="info-card-value">
+                  @if (classItem.starts_time && classItem.ends_time) {
+                    {{ classItem.starts_time.slice(0,5) }} – {{ classItem.ends_time.slice(0,5) }}
+                  } @else {
+                    —
+                  }
+                </div>
+              </div>
+            </div>
           }
+
+          <!-- Teacher -->
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i class="pi pi-user"></i>
+            </div>
+            <div class="info-card-content">
+              <div class="info-card-label">Καθηγητής</div>
+              <div class="info-card-value">{{ classItem.teacher?.name || '—' }}</div>
+            </div>
+          </div>
+
+          <!-- Capacity -->
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i class="pi pi-users"></i>
+            </div>
+            <div class="info-card-content">
+              <div class="info-card-label">Χωρητικότητα</div>
+              <div class="info-card-value">
+                @if (classItem.capacity != null) {
+                  {{ classItem.capacity }} άτομα
+                } @else {
+                  —
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workshop sessions list -->
+        @if (classItem.type === 'workshop') {
+          <div class="sessions-section">
+            <div class="sessions-title">
+              <i class="pi pi-calendar mr-2"></i>Ημερομηνίες Workshop
+            </div>
+            @if (classItem.sessions && classItem.sessions.length > 0) {
+              <div class="sessions-grid">
+                @for (s of classItem.sessions; track s.id ?? $index; let i = $index) {
+                  <div class="session-card">
+                    <div class="session-index">{{ i + 1 }}</div>
+                    <div class="session-date">{{ s.date }}</div>
+                    <div class="session-time">
+                      <i class="pi pi-clock mr-1"></i>
+                      {{ s.starts_time?.slice(0,5) }} – {{ s.ends_time?.slice(0,5) }}
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="text-lg text-500 p-3 text-center">Δεν υπάρχουν ημερομηνίες</div>
+            }
+          </div>
+        }
+      }
+
+    <!-- ============ EDIT / CREATE MODE ============ -->
+    } @else {
+
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <label class="block font-semibold mb-1">Τίτλος</label>
+          <input pInputText class="w-full" placeholder="Τίτλος τμήματος" [formControl]="ctrl('title')" />
+        </div>
+        <div class="col-12 md:col-6">
+          <label class="block font-semibold mb-1">Περιγραφή</label>
+          <input pInputText class="w-full" placeholder="Περιγραφή (προαιρετικά)" [formControl]="ctrl('description')" />
         </div>
       </div>
 
-      <div class="text-sm text-600 flex flex-column align-items-end gap-1">
-        <div>Ημέρα: @if (!editMode()) { {{ classItem.day_of_week || '—' }} } @else { }</div>
-        <div>Ώρα: {{ timeRange() }}</div>
-      </div>
-    </div>
+      <p-divider></p-divider>
 
-    <p-divider></p-divider>
-
-    <div class="grid">
-
-      <div class="col-12 md:col-6">
-        <div class="font-semibold mb-2">Πρόγραμμα</div>
-
-        <div class="line flex align-items-center gap-2">
-          <span class="label">Ημέρα:</span>
-          @if (!editMode()) {
-            {{ classItem.day_of_week || '—' }}
-          } @else {
-            <p-select class="w-full" [options]="dayOptions" [formControl]="ctrl('day_of_week')"></p-select>
-          }
-        </div>
-
-        <div class="line flex align-items-center gap-2">
-          <span class="label">Έναρξη:</span>
-          @if (!editMode()) {
-            {{ classItem.starts_time ? classItem.starts_time.slice(0,5) : '—' }}
-          } @else {
-            <input pInputText placeholder="HH:MM" class="w-8rem" [formControl]="ctrl('starts_time')" />
-          }
-        </div>
-
-        <div class="line flex align-items-center gap-2">
-          <span class="label">Λήξη:</span>
-          @if (!editMode()) {
-            {{ classItem.ends_time ? classItem.ends_time.slice(0,5) : '—' }}
-          } @else {
-            <input pInputText placeholder="HH:MM" class="w-8rem" [formControl]="ctrl('ends_time')" />
-          }
-        </div>
+      <div class="mb-3">
+        <label class="block font-semibold mb-1">Τύπος</label>
+        <p-select
+          [options]="typeOptions"
+          [formControl]="ctrl('type')"
+          optionLabel="label"
+          optionValue="value"
+          [style]="{ width: '220px' }"
+          appendTo="body"
+        ></p-select>
       </div>
 
-      <div class="col-12 md:col-6">
-        <div class="font-semibold mb-2">Στοιχεία</div>
+      <div class="grid">
 
-        <div class="line flex align-items-center gap-2">
-          <span class="label">Καθηγητής:</span>
-          @if (!editMode()) {
-            {{ classItem.teacher?.name || '—' }}
-          } @else {
-            <!-- you will replace this with real teacher dropdown -->
-            <input pInputText class="w-full" placeholder="teacher_id" [formControl]="ctrl('teacher_id')" />
+        <!-- Weekly schedule (edit) -->
+        @if (typeValue === 'weekly') {
+          <div class="col-12 md:col-6">
+            <div class="font-semibold text-lg mb-3">Πρόγραμμα</div>
+            <div class="mb-3">
+              <label class="block font-semibold mb-1">Ημέρα</label>
+              <p-select class="w-full" [options]="dayOptions" [formControl]="ctrl('day_of_week')" optionLabel="label" optionValue="value" placeholder="Επιλέξτε ημέρα" appendTo="body"></p-select>
+            </div>
+            <div class="grid">
+              <div class="col-6">
+                <label class="block font-semibold mb-1">Ώρα έναρξης</label>
+                <p-datepicker
+                  [formControl]="ctrl('starts_time')"
+                  [timeOnly]="true"
+                  [hourFormat]="'24'"
+                  [showIcon]="true"
+                  [iconDisplay]="'input'"
+                  icon="pi pi-clock"
+                  placeholder="Επιλέξτε ώρα"
+                  styleClass="w-full"
+                  appendTo="body"
+                ></p-datepicker>
+              </div>
+              <div class="col-6">
+                <label class="block font-semibold mb-1">Ώρα λήξης</label>
+                <p-datepicker
+                  [formControl]="ctrl('ends_time')"
+                  [timeOnly]="true"
+                  [hourFormat]="'24'"
+                  [showIcon]="true"
+                  [iconDisplay]="'input'"
+                  icon="pi pi-clock"
+                  placeholder="Επιλέξτε ώρα"
+                  styleClass="w-full"
+                  appendTo="body"
+                ></p-datepicker>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Workshop sessions (edit) -->
+        @if (typeValue === 'workshop') {
+          <div class="col-12 md:col-6">
+            <div class="font-semibold text-lg mb-3">Ημερομηνίες Workshop</div>
+            @for (sessionCtrl of sessionsArray.controls; track $index; let i = $index) {
+              <div class="grid mb-2 align-items-end" [formGroup]="$any(sessionCtrl)">
+                <div class="col-4">
+                  @if (i === 0) { <label class="block font-semibold mb-1">Ημερομηνία</label> }
+                  <input pInputText type="date" formControlName="date" class="w-full" />
+                </div>
+                <div class="col-3">
+                  @if (i === 0) { <label class="block font-semibold mb-1">Έναρξη</label> }
+                  <p-datepicker
+                    formControlName="starts_time"
+                    [timeOnly]="true"
+                    [hourFormat]="'24'"
+                    placeholder="Ώρα"
+                    styleClass="w-full"
+                    appendTo="body"
+                  ></p-datepicker>
+                </div>
+                <div class="col-3">
+                  @if (i === 0) { <label class="block font-semibold mb-1">Λήξη</label> }
+                  <p-datepicker
+                    formControlName="ends_time"
+                    [timeOnly]="true"
+                    [hourFormat]="'24'"
+                    placeholder="Ώρα"
+                    styleClass="w-full"
+                    appendTo="body"
+                  ></p-datepicker>
+                </div>
+                <div class="col-2">
+                  @if (i === 0) { <label class="block mb-1">&nbsp;</label> }
+                  <button pButton icon="pi pi-trash" severity="danger" rounded outlined size="small" (click)="removeSession($index)"></button>
+                </div>
+              </div>
+            }
+            <button pButton icon="pi pi-plus" label="Προσθήκη ημέρας" class="p-button-text p-button-sm mt-1" (click)="addSession()"></button>
+          </div>
+        }
+
+        <!-- Details (edit) -->
+        <div class="col-12 md:col-6">
+          <div class="font-semibold text-lg mb-3">Στοιχεία</div>
+          <div class="mb-3">
+            <label class="block font-semibold mb-1">Καθηγητής</label>
+            <p-select
+              class="w-full"
+              [options]="teachers()"
+              [formControl]="ctrl('teacher_id')"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Επιλέξτε καθηγητή"
+              [showClear]="true"
+              [filter]="true"
+              filterPlaceholder="Αναζήτηση..."
+              appendTo="body"
+            ></p-select>
+          </div>
+          <div class="mb-3">
+            <label class="block font-semibold mb-1">Χωρητικότητα</label>
+            <input pInputText type="number" class="w-full" placeholder="π.χ. 20" [formControl]="ctrl('capacity')" />
+          </div>
+          @if (mode !== 'create') {
+            <div class="mb-3">
+              <label class="block font-semibold mb-1">Κατάσταση</label>
+              <div class="toggle-row">
+                <p-toggleswitch [formControl]="ctrl('active')"></p-toggleswitch>
+                <span class="toggle-label" [class.active]="ctrl('active').value" [class.inactive]="!ctrl('active').value">
+                  {{ ctrl('active').value ? 'Ενεργό' : 'Ανενεργό' }}
+                </span>
+              </div>
+            </div>
           }
         </div>
 
-        <div class="line flex align-items-center gap-2">
-          <span class="label">Χωρητικότητα:</span>
-          @if (!editMode()) {
-            {{ classItem.capacity ?? '—' }}
-          } @else {
-            <input pInputText type="number" class="w-8rem" [formControl]="ctrl('capacity')" />
-          }
-        </div>
       </div>
-
-    </div>
+    }
   }
 
   <ng-template pTemplate="footer">
     @if (!editMode()) {
-      <button pButton label="Επεξεργασία" (click)="enterEdit()"></button>
-      <button pButton label="Κλείσιμο" class="p-button-text" (click)="hide()"></button>
+      <button pButton label="Επεξεργασία" icon="pi pi-pencil" (click)="enterEdit()"></button>
+      <button pButton label="Κλείσιμο" icon="pi pi-times" class="p-button-text" (click)="hide()"></button>
     } @else {
-      <button pButton label="Ακύρωση" class="p-button-text" (click)="cancelEdit()"></button>
+      <button pButton label="Ακύρωση" icon="pi pi-times" class="p-button-text" (click)="cancelEdit()"></button>
       <button
         pButton
-        label="Αποθήκευση"
+        [label]="mode === 'create' ? 'Δημιουργία' : 'Αποθήκευση'"
+        [icon]="mode === 'create' ? 'pi pi-plus' : 'pi pi-check'"
         class="p-button-success"
         [loading]="saving()"
         [disabled]="saving()"

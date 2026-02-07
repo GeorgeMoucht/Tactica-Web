@@ -32,6 +32,10 @@ export class ApiService {
         return this.http.delete<ApiEnvelope<T>>(`${this.base}${url}`, options).pipe(map(r => r.data));
     }
 
+    patch<T>(url: string, body?: unknown, options?: object) {
+        return this.http.patch<ApiEnvelope<T>>(`${this.base}${url}`, body, options).pipe(map(r => r.data));
+    }
+
     getRaw<T>(url: string, options?: object) {
         return this.http.get<ApiEnvelope<T>>(`${this.base}${url}`, options);
     }
