@@ -25,6 +25,7 @@ export interface ClassListRow {
     starts_time?: string | null;
     ends_time?: string | null;
     capacity?: number | null;
+    monthly_price?: number | null;
     teacher?: TeacherLite | null;
     created_at?: string;
 }
@@ -42,6 +43,7 @@ export interface UpsertClassDTO {
     starts_time?: string | null;
     ends_time?: string | null;
     capacity?: number | null;
+    monthly_price?: number | null;
     teacher_id?: number | null;
     active?: boolean;
     sessions?: ClassSession[];

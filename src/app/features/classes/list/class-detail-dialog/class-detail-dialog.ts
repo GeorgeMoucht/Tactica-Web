@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output, inject, signal, SimpleChanges, OnChanges } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, FormsModule, Validators, FormControl } from '@angular/forms';
 
@@ -12,16 +12,21 @@ import { TagModule } from 'primeng/tag';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ToastModule } from 'primeng/toast';
+import { TableModule } from 'primeng/table';
+import { TabsModule } from 'primeng/tabs';
 
 import { ClassService } from '../../../../core/services/class.service';
 import { TeacherService, TeacherOption } from '../../../../core/services/teacher.service';
+import { EnrollmentService } from '../../../../core/services/enrollment.service';
 import { ClassDetail, ClassType, UpsertClassDTO } from '../../../../core/models/class.models';
+import { Enrollment } from '../../../../core/models/enrollment.models';
 
 @Component({
   selector: 'app-class-detail-dialog',
   standalone: true,
   imports: [
     CommonModule,
+    CurrencyPipe,
     FormsModule,
     ReactiveFormsModule,
     DialogModule,
@@ -32,7 +37,9 @@ import { ClassDetail, ClassType, UpsertClassDTO } from '../../../../core/models/
     TagModule,
     DatePickerModule,
     ToggleSwitchModule,
-    ToastModule
+    ToastModule,
+    TableModule,
+    TabsModule
   ],
   providers: [MessageService],
   templateUrl: './class-detail-dialog.html',
@@ -42,6 +49,7 @@ export class ClassDetailDialog implements OnChanges {
   private fb = inject(FormBuilder);
   private api = inject(ClassService);
   private teacherApi = inject(TeacherService);
+  private enrollmentService = inject(EnrollmentService);
   private toast = inject(MessageService);
 
   @Input() visible = false;
@@ -56,6 +64,15 @@ export class ClassDetailDialog implements OnChanges {
   saving = signal(false);
   teachers = signal<TeacherOption[]>([]);
 
+  // Enrolled students
+  enrolledStudents = signal<Enrollment[]>([]);
+  loadingEnrollments = signal(false);
+  enrollmentMeta = signal<{ current: number; total: number; capacity: number | null }>({
+    current: 0,
+    total: 0,
+    capacity: null
+  });
+
   form: FormGroup = this.fb.group({
     title: ['', Validators.required],
     description: [''],
@@ -64,6 +81,7 @@ export class ClassDetailDialog implements OnChanges {
     starts_time: [''],
     ends_time: [''],
     capacity: [null],
+    monthly_price: [null],
     teacher_id: [null],
     active: [true],
     sessions: this.fb.array([])
@@ -90,6 +108,12 @@ export class ClassDetailDialog implements OnChanges {
     if (changes['mode'] && this.mode === 'create' && this.visible) {
       this.initCreateMode();
     }
+    if (changes['visible'] && this.visible && this.classItem && this.mode === 'view') {
+      this.loadEnrolledStudents();
+    }
+    if (changes['classItem'] && this.classItem && this.visible && this.mode === 'view') {
+      this.loadEnrolledStudents();
+    }
   }
 
   private loadTeachers() {
@@ -110,6 +134,7 @@ export class ClassDetailDialog implements OnChanges {
       starts_time: null,
       ends_time: null,
       capacity: null,
+      monthly_price: null,
       teacher_id: null
     });
     this.sessionsArray.clear();
@@ -141,6 +166,7 @@ export class ClassDetailDialog implements OnChanges {
       starts_time: this.timeStringToDate(this.classItem.starts_time),
       ends_time: this.timeStringToDate(this.classItem.ends_time),
       capacity: this.classItem.capacity ?? null,
+      monthly_price: this.classItem.monthly_price ?? null,
       teacher_id: this.classItem.teacher?.id ?? null,
       active: this.classItem.active ?? true
     });
@@ -214,6 +240,7 @@ export class ClassDetailDialog implements OnChanges {
       type,
       description: raw.description?.trim() || null,
       capacity: raw.capacity === '' ? null : raw.capacity,
+      monthly_price: raw.monthly_price != null && raw.monthly_price !== '' ? Number(raw.monthly_price) : null,
       teacher_id: raw.teacher_id ?? null,
     };
 
@@ -256,6 +283,7 @@ export class ClassDetailDialog implements OnChanges {
       type,
       description: raw.description?.trim() || null,
       capacity: raw.capacity === '' ? null : raw.capacity,
+      monthly_price: raw.monthly_price != null && raw.monthly_price !== '' ? Number(raw.monthly_price) : null,
       teacher_id: raw.teacher_id ?? null,
       active: raw.active ?? true
     };
@@ -324,5 +352,46 @@ export class ClassDetailDialog implements OnChanges {
     const c = this.classItem;
     if (!c?.starts_time || !c?.ends_time) return '—';
     return `${c.starts_time.slice(0,5)}–${c.ends_time.slice(0,5)}`;
+  }
+
+  loadEnrolledStudents() {
+    if (!this.classItem) return;
+
+    this.loadingEnrollments.set(true);
+    this.enrollmentService.getClassEnrollments(this.classItem.id, {
+      status: 'active',
+      perPage: 100
+    }).subscribe({
+      next: (res) => {
+        this.enrolledStudents.set(res.data);
+        this.enrollmentMeta.set({
+          current: res.data.length,
+          total: res.meta.total,
+          capacity: this.classItem?.capacity ?? null
+        });
+        this.loadingEnrollments.set(false);
+      },
+      error: () => {
+        this.loadingEnrollments.set(false);
+      }
+    });
+  }
+
+  capacityDisplay(): string {
+    const meta = this.enrollmentMeta();
+    if (meta.capacity !== null) {
+      return `${meta.current}/${meta.capacity}`;
+    }
+    return `${meta.current}`;
+  }
+
+  capacitySeverity(): 'success' | 'warn' | 'danger' | 'info' {
+    const meta = this.enrollmentMeta();
+    if (meta.capacity === null) return 'info';
+
+    const ratio = meta.current / meta.capacity;
+    if (ratio >= 1) return 'danger';
+    if (ratio >= 0.8) return 'warn';
+    return 'success';
   }
 }

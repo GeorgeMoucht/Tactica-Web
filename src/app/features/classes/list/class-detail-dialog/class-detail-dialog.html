@@ -98,6 +98,23 @@
               </div>
             </div>
           </div>
+
+          <!-- Monthly Price -->
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i class="pi pi-euro"></i>
+            </div>
+            <div class="info-card-content">
+              <div class="info-card-label">Μηνιαία τιμή</div>
+              <div class="info-card-value">
+                @if (classItem.monthly_price != null) {
+                  {{ classItem.monthly_price | currency:'EUR':'symbol':'1.2-2' }}
+                } @else {
+                  —
+                }
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Workshop sessions list -->
@@ -121,6 +138,69 @@
               </div>
             } @else {
               <div class="text-lg text-500 p-3 text-center">Δεν υπάρχουν ημερομηνίες</div>
+            }
+          </div>
+        }
+
+        <!-- Enrolled Students Section (only for weekly classes) -->
+        @if (classItem.type === 'weekly') {
+          <div class="enrolled-students-section mt-4">
+            <div class="flex align-items-center justify-content-between mb-3">
+              <div class="flex align-items-center gap-2">
+                <span class="font-semibold text-lg">Εγγεγραμμένοι Μαθητές</span>
+                <p-tag
+                  [value]="capacityDisplay()"
+                  [severity]="capacitySeverity()"
+                  [style]="{ fontSize: '0.85rem' }">
+                </p-tag>
+              </div>
+            </div>
+
+            @if (loadingEnrollments()) {
+              <div class="text-center p-3">
+                <i class="pi pi-spin pi-spinner"></i> Φόρτωση...
+              </div>
+            } @else if (enrolledStudents().length === 0) {
+              <div class="text-center text-600 p-3 surface-50 border-round">
+                Δεν υπάρχουν εγγεγραμμένοι μαθητές
+              </div>
+            } @else {
+              <p-table [value]="enrolledStudents()" [tableStyle]="{ 'min-width': '100%' }" styleClass="p-datatable-sm">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th>Μαθητής</th>
+                    <th>Email</th>
+                    <th>Τηλέφωνο</th>
+                    <th>Ημ/νία εγγραφής</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-enrollment>
+                  <tr>
+                    <td>
+                      <span class="font-medium">{{ enrollment.student?.name || '—' }}</span>
+                    </td>
+                    <td>
+                      @if (enrollment.student?.email) {
+                        <a [href]="'mailto:' + enrollment.student.email" class="text-primary">
+                          {{ enrollment.student.email }}
+                        </a>
+                      } @else {
+                        —
+                      }
+                    </td>
+                    <td>
+                      @if (enrollment.student?.phone) {
+                        <a [href]="'tel:' + enrollment.student.phone" class="text-primary">
+                          {{ enrollment.student.phone }}
+                        </a>
+                      } @else {
+                        —
+                      }
+                    </td>
+                    <td>{{ enrollment.enrolled_at | date:'dd/MM/yyyy' }}</td>
+                  </tr>
+                </ng-template>
+              </p-table>
             }
           </div>
         }
@@ -260,6 +340,10 @@
           <div class="mb-3">
             <label class="block font-semibold mb-1">Χωρητικότητα</label>
             <input pInputText type="number" class="w-full" placeholder="π.χ. 20" [formControl]="ctrl('capacity')" />
+          </div>
+          <div class="mb-3">
+            <label class="block font-semibold mb-1">Μηνιαία τιμή (€)</label>
+            <input pInputText type="number" step="0.01" class="w-full" placeholder="π.χ. 40.00" [formControl]="ctrl('monthly_price')" />
           </div>
           @if (mode !== 'create') {
             <div class="mb-3">
