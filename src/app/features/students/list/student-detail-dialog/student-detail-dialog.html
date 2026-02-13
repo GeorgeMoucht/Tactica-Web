@@ -290,6 +290,175 @@
       </div>
     </ng-container>
     <ng-template #noGuardians>—</ng-template>
+
+    <p-divider></p-divider>
+
+    <!-- Enrolled Classes Section -->
+    <div class="enrollments-section">
+      <div class="flex align-items-center justify-content-between mb-3">
+        <div class="font-semibold text-lg">Εγγεγραμμένα Μαθήματα</div>
+        @if (student.is_member && !editMode()) {
+          <button
+            pButton
+            icon="pi pi-plus"
+            label="Εγγραφή σε μάθημα"
+            class="p-button-sm"
+            (click)="openEnrollDialog()">
+          </button>
+        }
+      </div>
+
+      @if (loadingEnrollments()) {
+        <div class="text-center p-3">
+          <i class="pi pi-spin pi-spinner"></i> Φόρτωση...
+        </div>
+      } @else if (enrollments().length === 0) {
+        <div class="text-center text-600 p-3 surface-50 border-round">
+          Δεν υπάρχουν εγγραφές σε μαθήματα
+        </div>
+      } @else {
+        <p-table [value]="enrollments()" [tableStyle]="{ 'min-width': '100%' }" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Μάθημα</th>
+              <th>Ημέρα</th>
+              <th>Ώρα</th>
+              <th>Έκπτωση</th>
+              <th>Κατάσταση</th>
+              <th>Ημ/νία εγγραφής</th>
+              <th style="width: 110px"></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-enrollment>
+            <tr>
+              <td>{{ enrollment.course_class?.title || '—' }}</td>
+              <td>{{ dayLabel(enrollment.course_class?.day_of_week) }}</td>
+              <td>
+                @if (enrollment.course_class?.starts_time && enrollment.course_class?.ends_time) {
+                  {{ enrollment.course_class.starts_time.slice(0,5) }}–{{ enrollment.course_class.ends_time.slice(0,5) }}
+                } @else {
+                  —
+                }
+              </td>
+              <td>
+                @if (enrollment.discount_percent > 0 || enrollment.discount_amount > 0) {
+                  <span class="text-sm">
+                    @if (enrollment.discount_percent > 0) {
+                      {{ enrollment.discount_percent }}%
+                    }
+                    @if (enrollment.discount_percent > 0 && enrollment.discount_amount > 0) {
+                      +
+                    }
+                    @if (enrollment.discount_amount > 0) {
+                      {{ enrollment.discount_amount | currency:'EUR':'symbol':'1.2-2' }}
+                    }
+                  </span>
+                } @else {
+                  <span class="text-400">—</span>
+                }
+              </td>
+              <td>
+                <p-tag
+                  [value]="enrollment.status === 'active' ? 'Ενεργή' : 'Αποχώρηση'"
+                  [severity]="enrollment.status === 'active' ? 'success' : 'secondary'">
+                </p-tag>
+              </td>
+              <td>{{ enrollment.enrolled_at | date:'dd/MM/yyyy' }}</td>
+              <td>
+                @if (enrollment.status === 'active') {
+                  <button
+                    pButton
+                    icon="pi pi-percentage"
+                    class="p-button-text p-button-sm"
+                    pTooltip="Επεξεργασία έκπτωσης"
+                    (click)="editEnrollmentDiscount(enrollment)">
+                  </button>
+                  <button
+                    pButton
+                    icon="pi pi-sign-out"
+                    class="p-button-text p-button-sm p-button-danger"
+                    pTooltip="Αποχώρηση"
+                    (click)="withdrawEnrollment(enrollment)">
+                  </button>
+                }
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </div>
+
+    <p-divider></p-divider>
+
+    <!-- Payment Summary Section -->
+    <div class="payment-section">
+      <div class="flex align-items-center justify-content-between mb-3">
+        <div class="font-semibold text-lg">Οικονομικά</div>
+        <button
+          pButton
+          label="Λεπτομέρειες"
+          icon="pi pi-list"
+          class="p-button-sm p-button-text"
+          (click)="openPaymentDialog()">
+        </button>
+      </div>
+
+      @if (loadingPayments()) {
+        <div class="text-center p-3">
+          <i class="pi pi-spin pi-spinner"></i> Φόρτωση...
+        </div>
+      } @else if (paymentSummary()) {
+        <!-- Summary Cards -->
+        <div class="grid">
+          <div class="col-6">
+            <div class="surface-50 border-round p-3">
+              <div class="text-600 text-sm">Σύνολο πληρωμένων</div>
+              <div class="text-xl font-bold text-green-600">
+                {{ paymentSummary()!.total_paid | currency:'EUR':'symbol':'1.2-2' }}
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="surface-50 border-round p-3">
+              <div class="text-600 text-sm">Εκκρεμείς οφειλές</div>
+              <div class="text-xl font-bold"
+                   [class.text-red-600]="paymentSummary()!.total_outstanding > 0">
+                {{ paymentSummary()!.total_outstanding | currency:'EUR':'symbol':'1.2-2' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Outstanding Dues List (if any) -->
+        @if (paymentSummary()!.outstanding_dues?.length) {
+          <div class="mt-3">
+            <div class="text-sm text-600 mb-2">Εκκρεμείς οφειλές:</div>
+            <p-table [value]="paymentSummary()!.outstanding_dues" styleClass="p-datatable-sm">
+              <ng-template pTemplate="body" let-due>
+                <tr>
+                  <td>{{ due.period }}</td>
+                  <td>{{ due.class?.title }}</td>
+                  <td class="text-right">{{ due.amount | currency:'EUR':'symbol':'1.2-2' }}</td>
+                  <td class="text-right" style="width: 60px">
+                    <button
+                      pButton
+                      icon="pi pi-check"
+                      class="p-button-sm p-button-success p-button-text"
+                      pTooltip="Πληρώθηκε"
+                      (click)="payDue(due)">
+                    </button>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        }
+      } @else {
+        <div class="text-center text-600 p-3 surface-50 border-round">
+          Δεν υπάρχουν οικονομικά στοιχεία
+        </div>
+      }
+    </div>
   }
 
   <!-- Footer -->
@@ -386,10 +555,165 @@
     (visibleChange)="historyDialogVisible.set($event)"
     [studentId]="student.id">
   </app-student-history-dialog>
-  <!-- <app-student-history-dialog
-    [visible]="historyDialogVisible()"
-    (visibleChange)="historyDialogVisible.set($event)"
+
+  <app-student-payment-dialog
+    [visible]="paymentDialogVisible()"
+    (visibleChange)="paymentDialogVisible.set($event)"
     [studentId]="student.id"
-    [memberships]="membershipHistory()">
-  </app-student-history-dialog> -->
+    (paymentChanged)="onPaymentDialogClose()">
+  </app-student-payment-dialog>
 }
+
+<!-- Enroll in class dialog -->
+<p-dialog
+  [visible]="enrollDialogVisible()"
+  (visibleChange)="enrollDialogVisible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '480px', maxWidth: '95vw' }"
+  header="Εγγραφή σε μάθημα"
+  [closable]="true"
+  [dismissableMask]="true"
+>
+  <div class="mb-3">
+    <div class="text-sm text-600 mb-1">Μαθητής</div>
+    <div class="font-semibold">{{ student?.name }}</div>
+  </div>
+
+  <p-divider></p-divider>
+
+  @if (loadingClasses()) {
+    <div class="text-center p-4">
+      <i class="pi pi-spin pi-spinner mr-2"></i> Φόρτωση μαθημάτων...
+    </div>
+  } @else if (availableClasses().length === 0) {
+    <div class="text-center text-600 p-4">
+      Δεν υπάρχουν διαθέσιμα μαθήματα για εγγραφή
+    </div>
+  } @else {
+    <div class="mb-3">
+      <label class="block font-semibold mb-2">Επιλέξτε μάθημα</label>
+      <p-select
+        [options]="availableClasses()"
+        [(ngModel)]="selectedClassId"
+        optionLabel="title"
+        optionValue="id"
+        placeholder="Επιλέξτε..."
+        [style]="{ width: '100%' }"
+        appendTo="body"
+      >
+        <ng-template pTemplate="item" let-item>
+          <div class="flex flex-column">
+            <span class="font-medium">{{ item.title }}</span>
+            <span class="text-sm text-600">
+              {{ dayLabel(item.day_of_week) }}
+              @if (item.starts_time && item.ends_time) {
+                • {{ item.starts_time.slice(0,5) }}–{{ item.ends_time.slice(0,5) }}
+              }
+              @if (item.capacity) {
+                • Χωρητικότητα: {{ item.capacity }}
+              }
+            </span>
+          </div>
+        </ng-template>
+      </p-select>
+    </div>
+
+    <p-divider></p-divider>
+
+    <div class="text-sm text-600 mb-2">Έκπτωση (προαιρετικά)</div>
+    <div class="grid">
+      <div class="col-6">
+        <label class="block text-sm mb-1">Ποσοστό (%)</label>
+        <input pInputText type="number" min="0" max="100" class="w-full" placeholder="0" [(ngModel)]="enrollDiscountPercent" />
+      </div>
+      <div class="col-6">
+        <label class="block text-sm mb-1">Ποσό (€)</label>
+        <input pInputText type="number" min="0" step="0.01" class="w-full" placeholder="0.00" [(ngModel)]="enrollDiscountAmount" />
+      </div>
+    </div>
+    <div class="mt-2">
+      <label class="block text-sm mb-1">Σημείωση έκπτωσης</label>
+      <textarea
+        class="p-inputtext p-component w-full border border-surface-300 rounded-md p-2"
+        rows="2"
+        [(ngModel)]="enrollDiscountNote"
+        placeholder="Λόγος έκπτωσης..."
+      ></textarea>
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    <button
+      pButton
+      label="Ακύρωση"
+      class="p-button-text"
+      (click)="enrollDialogVisible.set(false)"
+    ></button>
+    <button
+      pButton
+      label="Εγγραφή"
+      [disabled]="!selectedClassId || enrolling()"
+      [loading]="enrolling()"
+      (click)="confirmEnroll()"
+    ></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Edit Enrollment Discount Dialog -->
+<p-dialog
+  [visible]="editDiscountDialogVisible()"
+  (visibleChange)="editDiscountDialogVisible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '480px', maxWidth: '95vw' }"
+  header="Επεξεργασία Έκπτωσης"
+  [closable]="true"
+  [dismissableMask]="true"
+>
+  @if (selectedEnrollmentForDiscount()) {
+    <div class="mb-3">
+      <div class="text-sm text-600 mb-1">Μάθημα</div>
+      <div class="font-semibold">{{ selectedEnrollmentForDiscount()!.course_class?.title }}</div>
+    </div>
+
+    <p-divider></p-divider>
+
+    <div class="mb-3">
+      <label class="block font-semibold mb-2">Έκπτωση (%)</label>
+      <input pInputText type="number" min="0" max="100" [(ngModel)]="discountPercent"
+             placeholder="0" class="w-full" />
+    </div>
+
+    <div class="mb-3">
+      <label class="block font-semibold mb-2">Έκπτωση (ποσό €)</label>
+      <input pInputText type="number" min="0" step="0.01" [(ngModel)]="discountAmount"
+             placeholder="0.00" class="w-full" />
+    </div>
+
+    <div class="mb-3">
+      <label class="block font-semibold mb-2">Σημείωση έκπτωσης</label>
+      <textarea class="p-inputtext p-component w-full border border-surface-300 rounded-md p-2"
+                rows="3" [(ngModel)]="discountNote"
+                placeholder="Λόγος έκπτωσης..."></textarea>
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    <button
+      pButton
+      label="Ακύρωση"
+      class="p-button-text"
+      (click)="editDiscountDialogVisible.set(false)">
+    </button>
+    <button
+      pButton
+      label="Αποθήκευση"
+      [loading]="savingDiscount()"
+      [disabled]="savingDiscount()"
+      (click)="saveEnrollmentDiscount()">
+    </button>
+  </ng-template>
+</p-dialog>
+
+<p-confirmDialog></p-confirmDialog>

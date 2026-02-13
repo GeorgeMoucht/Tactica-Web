@@ -1,0 +1,176 @@
+<p-dialog
+    [visible]="visible()"
+    (visibleChange)="visibleChange.emit($event)"
+    [modal]="true"
+    [draggable]="false"
+    appendTo="body"
+    [style]="{ width: '800px', maxWidth: '95vw' }"
+    header="Οικονομικά - Μηνιαίες Οφειλές"
+    [closable]="true"
+    [dismissableMask]="true"
+>
+    <!-- Filter -->
+    <div class="flex align-items-center gap-3 mb-3">
+        <span class="text-sm text-600">Φίλτρο:</span>
+        <p-select
+            [options]="statusOptions"
+            [(ngModel)]="statusFilter"
+            (ngModelChange)="onStatusFilterChange()"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Όλες"
+            [style]="{ width: '160px' }"
+        ></p-select>
+    </div>
+
+    <p-divider></p-divider>
+
+    @if (loading()) {
+        <div class="text-center p-4">
+            <i class="pi pi-spin pi-spinner mr-2"></i> Φόρτωση...
+        </div>
+    } @else if (dues().length > 0) {
+        <p-table
+            [value]="dues()"
+            [tableStyle]="{ 'min-width': '100%' }"
+            styleClass="p-datatable-sm"
+            [paginator]="dues().length > 10"
+            [rows]="10"
+            [rowsPerPageOptions]="[10, 25, 50]"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Περίοδος</th>
+                    <th>Μάθημα</th>
+                    <th class="text-right">Ποσό</th>
+                    <th>Κατάσταση</th>
+                    <th>Ημ/νία πληρωμής</th>
+                    <th style="width: 100px"></th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-due>
+                <tr>
+                    <td>{{ due.period_label }}</td>
+                    <td>{{ due.class?.title || '—' }}</td>
+                    <td class="text-right">{{ due.amount | currency:'EUR':'symbol':'1.2-2' }}</td>
+                    <td>
+                        <p-tag
+                            [value]="statusLabel(due.status)"
+                            [severity]="statusSeverity(due.status)">
+                        </p-tag>
+                    </td>
+                    <td>
+                        @if (due.paid_at) {
+                            {{ due.paid_at | date:'dd/MM/yyyy' }}
+                        } @else {
+                            —
+                        }
+                    </td>
+                    <td class="text-right">
+                        @if (due.status === 'pending') {
+                            <button
+                                pButton
+                                icon="pi pi-check"
+                                class="p-button-sm p-button-success p-button-text"
+                                pTooltip="Πληρώθηκε"
+                                (click)="payDue(due)">
+                            </button>
+                            <button
+                                pButton
+                                icon="pi pi-times"
+                                class="p-button-sm p-button-secondary p-button-text"
+                                pTooltip="Διαγραφή"
+                                (click)="openWaiveDialog(due)">
+                            </button>
+                        }
+                        @if (due.notes) {
+                            <button
+                                pButton
+                                icon="pi pi-info-circle"
+                                class="p-button-sm p-button-text"
+                                [pTooltip]="due.notes">
+                            </button>
+                        }
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="6" class="text-center text-600 p-4">
+                        Δεν βρέθηκαν οφειλές
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    } @else {
+        <div class="text-center text-600 p-4 surface-50 border-round">
+            Δεν υπάρχουν οφειλές
+        </div>
+    }
+
+    <ng-template pTemplate="footer">
+        <button
+            pButton
+            label="Κλείσιμο"
+            class="p-button-text"
+            (click)="close()">
+        </button>
+    </ng-template>
+</p-dialog>
+
+<!-- Waive Dialog -->
+<p-dialog
+    [visible]="waiveDialogVisible()"
+    (visibleChange)="waiveDialogVisible.set($event)"
+    [modal]="true"
+    [draggable]="false"
+    appendTo="body"
+    [style]="{ width: '420px', maxWidth: '95vw' }"
+    header="Διαγραφή οφειλής"
+    [closable]="true"
+    [dismissableMask]="true"
+>
+    @if (selectedDueForWaive()) {
+        <div class="mb-3">
+            <div class="text-sm text-600 mb-1">Οφειλή</div>
+            <div class="font-semibold">
+                {{ selectedDueForWaive()!.period_label }} - {{ selectedDueForWaive()!.class?.title }}
+            </div>
+            <div class="text-600">
+                {{ selectedDueForWaive()!.amount | currency:'EUR':'symbol':'1.2-2' }}
+            </div>
+        </div>
+
+        <p-divider></p-divider>
+
+        <div class="mb-3">
+            <label class="block text-sm text-600 mb-1">Σημειώσεις (προαιρετικό)</label>
+            <textarea
+                class="p-inputtext p-component w-full border border-surface-300 rounded-md p-2"
+                rows="3"
+                [(ngModel)]="waiveNotes"
+                placeholder="Λόγος διαγραφής..."
+            ></textarea>
+        </div>
+    }
+
+    <ng-template pTemplate="footer">
+        <button
+            pButton
+            label="Ακύρωση"
+            class="p-button-text"
+            (click)="waiveDialogVisible.set(false)">
+        </button>
+        <button
+            pButton
+            label="Διαγραφή οφειλής"
+            class="p-button-warning"
+            icon="pi pi-times"
+            [loading]="waiving()"
+            [disabled]="waiving()"
+            (click)="confirmWaive()">
+        </button>
+    </ng-template>
+</p-dialog>
+
+<p-confirmDialog></p-confirmDialog>

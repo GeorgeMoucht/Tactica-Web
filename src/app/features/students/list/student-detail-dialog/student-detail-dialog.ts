@@ -1,5 +1,5 @@
-import { CommonModule, DatePipe } from '@angular/common';
-import { Component, EventEmitter, Input, Output, inject, signal, computed } from '@angular/core';
+import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
+import { Component, EventEmitter, Input, Output, inject, signal, computed, OnChanges, SimpleChanges } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -18,8 +18,18 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { CheckboxModule } from 'primeng/checkbox';
-import { MessageService } from 'primeng/api';
+import { TabsModule } from 'primeng/tabs';
+import { TableModule } from 'primeng/table';
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { MembershipService } from '../../../../core/services/membership.service';
+import { EnrollmentService } from '../../../../core/services/enrollment.service';
+import { ClassService } from '../../../../core/services/class.service';
+import { PaymentService } from '../../../../core/services/payment.service';
+import { Enrollment } from '../../../../core/models/enrollment.models';
+import { ClassListRow } from '../../../../core/models/class.models';
+import { PaymentSummary, OutstandingDue } from '../../../../core/models/payment.models';
 
 import {
   GuardianBasic,
@@ -28,6 +38,7 @@ import {
 } from '../../../../core/models/student.models';
 import { StudentService } from '../../../../core/services/student.service';
 import { StudentHistoryDialog } from './student-history-dialog/student-history-dialog';
+import { StudentPaymentDialog } from './student-payment-dialog/student-payment-dialog';
 
 const LEVEL_LABELS: Record<'beginner' | 'intermediate' | 'advanced', string> = {
   beginner: 'Αρχάριος',
@@ -59,6 +70,7 @@ function ageFrom(birthdate?: string | null): number | null {
   imports: [
     CommonModule,
     DatePipe,
+    CurrencyPipe,
     ReactiveFormsModule,
     DialogModule,
     DividerModule,
@@ -70,17 +82,26 @@ function ageFrom(birthdate?: string | null): number | null {
     MultiSelectModule,
     CheckboxModule,
     FormsModule,
-    StudentHistoryDialog
+    TabsModule,
+    TableModule,
+    ConfirmDialogModule,
+    TooltipModule,
+    StudentHistoryDialog,
+    StudentPaymentDialog
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './student-detail-dialog.html',
   styleUrl: './student-detail-dialog.scss'
 })
-export class StudentDetailDialog {
+export class StudentDetailDialog implements OnChanges {
   private fb = inject(FormBuilder);
   private api = inject(StudentService);
   private toast = inject(MessageService);
+  private confirm = inject(ConfirmationService);
   private memberships = inject(MembershipService);
+  private enrollmentService = inject(EnrollmentService);
+  private classService = inject(ClassService);
+  private paymentService = inject(PaymentService);
 
   @Input() visible = false;
   @Input() student: StudentDetail | null = null;
@@ -91,6 +112,28 @@ export class StudentDetailDialog {
   editMode = signal(false);
   saving = signal(false);
   registrationDialogVisible = signal(false);
+
+  // Enrollments
+  enrollments = signal<Enrollment[]>([]);
+  loadingEnrollments = signal(false);
+  enrollDialogVisible = signal(false);
+  availableClasses = signal<ClassListRow[]>([]);
+  loadingClasses = signal(false);
+  selectedClassId: number | null = null;
+  enrolling = signal(false);
+
+  // Discount fields for enrollment creation
+  enrollDiscountPercent: number | null = null;
+  enrollDiscountAmount: number | null = null;
+  enrollDiscountNote: string = '';
+
+  // Edit discount dialog
+  editDiscountDialogVisible = signal(false);
+  selectedEnrollmentForDiscount = signal<Enrollment | null>(null);
+  discountPercent: number | null = null;
+  discountAmount: number | null = null;
+  discountNote: string = '';
+  savingDiscount = signal(false);
 
   private todayIso = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
@@ -103,6 +146,11 @@ export class StudentDetailDialog {
   } | null>(null);
 
   historyDialogVisible = signal(false);
+
+  // Payments
+  paymentSummary = signal<PaymentSummary | null>(null);
+  loadingPayments = signal(false);
+  paymentDialogVisible = signal(false);
 
   form: FormGroup = this.fb.group({
     first_name: ['', Validators.required],
@@ -151,6 +199,17 @@ export class StudentDetailDialog {
 
   ctrl(path: string): FormControl {
     return this.form.get(path) as FormControl;
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['visible'] && this.visible && this.student) {
+      this.loadEnrollments();
+      this.loadPaymentSummary();
+    }
+    if (changes['student'] && this.student && this.visible) {
+      this.loadEnrollments();
+      this.loadPaymentSummary();
+    }
   }
 
   hide() {
@@ -322,5 +381,227 @@ export class StudentDetailDialog {
 
   openHistoryDialog() {
     this.historyDialogVisible.set(true);
+  }
+
+  // Enrollment methods
+  loadEnrollments() {
+    if (!this.student) return;
+
+    this.loadingEnrollments.set(true);
+    this.enrollmentService.getStudentEnrollments(this.student.id).subscribe({
+      next: (enrollments) => {
+        this.enrollments.set(enrollments);
+        this.loadingEnrollments.set(false);
+      },
+      error: () => {
+        this.loadingEnrollments.set(false);
+      }
+    });
+  }
+
+  openEnrollDialog() {
+    this.loadingClasses.set(true);
+    this.selectedClassId = null;
+    this.enrollDiscountPercent = null;
+    this.enrollDiscountAmount = null;
+    this.enrollDiscountNote = '';
+
+    // Load available weekly classes that are active
+    this.classService.list({ type: 'weekly', active: true, pageSize: 100 }).subscribe({
+      next: (res) => {
+        // Filter out classes student is already enrolled in
+        const enrolledClassIds = this.enrollments()
+          .filter(e => e.status === 'active')
+          .map(e => e.class_id);
+
+        const available = res.data.filter((c: ClassListRow) => !enrolledClassIds.includes(c.id));
+        this.availableClasses.set(available);
+        this.loadingClasses.set(false);
+        this.enrollDialogVisible.set(true);
+      },
+      error: () => {
+        this.loadingClasses.set(false);
+        this.toast.add({
+          severity: 'error',
+          summary: 'Σφάλμα',
+          detail: 'Αποτυχία φόρτωσης μαθημάτων'
+        });
+      }
+    });
+  }
+
+  confirmEnroll() {
+    const classId = this.selectedClassId;
+    if (!classId || !this.student) return;
+
+    this.enrolling.set(true);
+
+    const payload: any = { class_id: classId };
+    if (this.enrollDiscountPercent != null && this.enrollDiscountPercent > 0) {
+      payload.discount_percent = this.enrollDiscountPercent;
+    }
+    if (this.enrollDiscountAmount != null && this.enrollDiscountAmount > 0) {
+      payload.discount_amount = this.enrollDiscountAmount;
+    }
+    if (this.enrollDiscountNote?.trim()) {
+      payload.discount_note = this.enrollDiscountNote.trim();
+    }
+
+    this.enrollmentService.enroll(this.student.id, payload).subscribe({
+      next: () => {
+        this.toast.add({
+          severity: 'success',
+          summary: 'Επιτυχία',
+          detail: 'Η εγγραφή ολοκληρώθηκε'
+        });
+        this.enrollDialogVisible.set(false);
+        this.loadEnrollments();
+      },
+      error: (err) => {
+        this.toast.add({
+          severity: 'error',
+          summary: 'Σφάλμα',
+          detail: err?.error?.message ?? 'Αποτυχία εγγραφής'
+        });
+      },
+      complete: () => {
+        this.enrolling.set(false);
+      }
+    });
+  }
+
+  withdrawEnrollment(enrollment: Enrollment) {
+    this.confirm.confirm({
+      message: `Θέλετε να αποχωρήσετε από το μάθημα "${enrollment.course_class?.title}";`,
+      header: 'Επιβεβαίωση αποχώρησης',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Ναι',
+      rejectLabel: 'Όχι',
+      accept: () => {
+        this.enrollmentService.withdraw(enrollment.id).subscribe({
+          next: () => {
+            this.toast.add({
+              severity: 'success',
+              summary: 'Επιτυχία',
+              detail: 'Η αποχώρηση ολοκληρώθηκε'
+            });
+            this.loadEnrollments();
+          },
+          error: (err) => {
+            this.toast.add({
+              severity: 'error',
+              summary: 'Σφάλμα',
+              detail: err?.error?.message ?? 'Αποτυχία αποχώρησης'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  editEnrollmentDiscount(enrollment: Enrollment) {
+    this.selectedEnrollmentForDiscount.set(enrollment);
+    this.discountPercent = enrollment.discount_percent ?? 0;
+    this.discountAmount = enrollment.discount_amount ?? 0;
+    this.discountNote = enrollment.discount_note ?? '';
+    this.editDiscountDialogVisible.set(true);
+  }
+
+  saveEnrollmentDiscount() {
+    const enrollment = this.selectedEnrollmentForDiscount();
+    if (!enrollment) return;
+
+    this.savingDiscount.set(true);
+
+    this.enrollmentService.updateDiscount(enrollment.id, {
+      discount_percent: this.discountPercent ?? 0,
+      discount_amount: this.discountAmount ?? 0,
+      discount_note: this.discountNote?.trim() || undefined,
+    }).subscribe({
+      next: () => {
+        this.toast.add({
+          severity: 'success',
+          summary: 'Επιτυχία',
+          detail: 'Η έκπτωση ενημερώθηκε'
+        });
+        this.editDiscountDialogVisible.set(false);
+        this.loadEnrollments();
+      },
+      error: (err) => {
+        this.toast.add({
+          severity: 'error',
+          summary: 'Σφάλμα',
+          detail: err?.error?.message ?? 'Αποτυχία ενημέρωσης έκπτωσης'
+        });
+      },
+      complete: () => this.savingDiscount.set(false)
+    });
+  }
+
+  dayLabel(d?: number | null): string {
+    if (!d) return '—';
+    const days: Record<number, string> = {
+      1: 'Δευτέρα',
+      2: 'Τρίτη',
+      3: 'Τετάρτη',
+      4: 'Πέμπτη',
+      5: 'Παρασκευή',
+      6: 'Σάββατο',
+      7: 'Κυριακή'
+    };
+    return days[d] ?? String(d);
+  }
+
+  // Payment methods
+  loadPaymentSummary() {
+    if (!this.student) return;
+
+    this.loadingPayments.set(true);
+    this.paymentService.getSummary(this.student.id).subscribe({
+      next: (summary) => {
+        this.paymentSummary.set(summary);
+      },
+      error: () => {
+        this.paymentSummary.set(null);
+      },
+      complete: () => this.loadingPayments.set(false)
+    });
+  }
+
+  payDue(due: OutstandingDue) {
+    this.confirm.confirm({
+      message: `Θέλετε να καταχωρήσετε πληρωμή για την οφειλή "${due.period}" (${due.class.title});`,
+      header: 'Επιβεβαίωση πληρωμής',
+      icon: 'pi pi-check-circle',
+      acceptLabel: 'Ναι, πληρώθηκε',
+      rejectLabel: 'Ακύρωση',
+      accept: () => {
+        this.paymentService.payDue(due.id).subscribe({
+          next: () => {
+            this.toast.add({
+              severity: 'success',
+              summary: 'Επιτυχία',
+              detail: 'Η πληρωμή καταχωρήθηκε'
+            });
+            this.loadPaymentSummary();
+          },
+          error: (err) => {
+            this.toast.add({
+              severity: 'error',
+              summary: 'Σφάλμα',
+              detail: err?.error?.message ?? 'Αποτυχία καταχώρησης πληρωμής'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  openPaymentDialog() {
+    this.paymentDialogVisible.set(true);
+  }
+
+  onPaymentDialogClose() {
+    this.loadPaymentSummary();
   }
 }
