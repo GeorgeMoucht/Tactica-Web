@@ -1,83 +1,144 @@
 <p-dialog [(visible)]="visible"
           [modal]="true"
-          [style]="{ width:'640px' }"
+          [draggable]="false"
+          [style]="{ width:'720px', maxWidth: '95vw' }"
           header="Λεπτομέρειες Κηδεμόνα"
           (onHide)="hide()">
 
   @if (guardian) {
-    <h3 class="m-0 mb-2">{{ guardian.name }}</h3>
 
-    <p-divider></p-divider>
+    <!-- Header -->
+    <div class="view-header">
+      <div class="avatar">{{ initials() }}</div>
+      <div class="flex-1">
+        <div class="view-title">{{ guardian.name }}</div>
+      </div>
+      <p-tag
+        [value]="guardian.students.length + ' μαθητ' + (guardian.students.length === 1 ? 'ής' : 'ές')"
+        severity="info"
+        [style]="{ fontSize: '0.9rem', padding: '0.3rem 0.75rem' }">
+      </p-tag>
+    </div>
 
-    <div class="grid">
-      <div class="col-12 md:col-6">
-        <div class="font-semibold mb-2">Επικοινωνία</div>
+    <!-- Info cards -->
+    <div class="info-cards">
 
-        <div class="line">
-          <span class="label">Email:</span>
-          @if (guardian.email) {
-            <a>{{ guardian.email }}</a>
-          } @else {
-            <ng-template>-</ng-template>
-          }
+      <!-- Email -->
+      <div class="info-card">
+        <div class="info-card-icon">
+          <i class="pi pi-envelope"></i>
         </div>
-
-        <div class="line">
-          <span class="label">Τηλέφωνο:</span>
-          @if (guardian.phone) {
-            <a>{{ guardian.phone }}</a>
-          } @else {
-            <ng-template>-</ng-template>
-          }
-        </div>
-
-        <div class="line">
-          <span class="label">Διεύθυνση:</span>
-          @if (guardian.address) {
-            <span>
-              {{ guardian.address.street || '' }}
-              {{ guardian.address.city ? ', ' + guardian.address.city : '' }}
-              {{ guardian.address.zip ? ' ' + guardian.address.zip : '' }}
-            </span>
-          } @else {
-            <ng-template>-</ng-template>
-          }
+        <div class="info-card-content">
+          <div class="info-card-label">Email</div>
+          <div class="info-card-value">
+            @if (guardian.email) {
+              <a [href]="'mailto:' + guardian.email">{{ guardian.email }}</a>
+            } @else {
+              —
+            }
+          </div>
         </div>
       </div>
 
-      <div class="col-12 md:col-6">
-        <div class="font-semibold mb-2">Σημειώσεις</div>
-        <div class="prewrap">{{ guardian.notes || '—' }}</div>
+      <!-- Phone -->
+      <div class="info-card">
+        <div class="info-card-icon">
+          <i class="pi pi-phone"></i>
+        </div>
+        <div class="info-card-content">
+          <div class="info-card-label">Τηλέφωνο</div>
+          <div class="info-card-value">
+            @if (guardian.phone) {
+              <a [href]="'tel:' + guardian.phone">{{ guardian.phone }}</a>
+            } @else {
+              —
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Preferred contact -->
+      <div class="info-card">
+        <div class="info-card-icon">
+          <i class="pi pi-comment"></i>
+        </div>
+        <div class="info-card-content">
+          <div class="info-card-label">Προτιμώμενη επικοινωνία</div>
+          <div class="info-card-value">{{ preferredContactLabel() }}</div>
+        </div>
+      </div>
+
+      <!-- Newsletter -->
+      <div class="info-card">
+        <div class="info-card-icon">
+          <i class="pi pi-megaphone"></i>
+        </div>
+        <div class="info-card-content">
+          <div class="info-card-label">Newsletter</div>
+          <div class="info-card-value">{{ guardian.newsletter_consent ? 'Ναι' : 'Όχι' }}</div>
+        </div>
       </div>
     </div>
 
-    <p-divider></p-divider>
+    <!-- Address -->
+    <div class="address-row">
+      <i class="pi pi-map-marker"></i>
+      @if (guardian.address?.street || guardian.address?.city || guardian.address?.zip) {
+        <span>
+          {{ guardian.address?.street || '' }}{{ guardian.address?.city ? ', ' + guardian.address?.city : '' }}{{ guardian.address?.zip ? ' ' + guardian.address?.zip : '' }}
+        </span>
+      } @else {
+        <span>—</span>
+      }
+    </div>
 
-    <div class="font-semibold mb-2">Μαθητές</div>
+    <!-- Notes -->
+    <div class="section">
+      <div class="section-title">Σημειώσεις</div>
+      <div class="prewrap">{{ guardian.notes || '—' }}</div>
+    </div>
 
-    <div class="flex flex-column gap-2">
-      <div *ngFor="let s of guardian.students" class="surface-50 p-2 border-round">
-        <div class="font-medium">{{ s.name }}</div>
-        <div class="text-sm text-600 flex flex-column gap-1">
-          @if (s.email) {
-            <div class="flex align-items-center gap-2">
-              <i class="pi pi-envelope"></i> {{ s.email }}
-            </div>
-          }
-
-          @if (s.phone) {
-            <div class="flex align-items-center gap-2">
-              <i class="pi pi-phone"></i> {{ s.phone }}
-            </div>
-          }
-        </div>
-      </div>
+    <!-- Students -->
+    <div class="section">
+      <div class="section-title">Μαθητές</div>
 
       @if (guardian.students.length === 0) {
-        <div class="text-600">
+        <div class="text-center text-600 p-3 surface-50 border-round">
           Δεν υπάρχουν μαθητές.
+        </div>
+      } @else {
+        <div class="flex flex-column gap-2">
+          @for (s of guardian.students; track s.id) {
+            <div class="student-card clickable" (click)="openStudent(s.id)">
+              <div class="student-card-name">
+                <i class="pi pi-user"></i>
+                {{ s.name }}
+              </div>
+              <div class="student-card-details">
+                @if (s.email) {
+                  <div class="student-card-row">
+                    <i class="pi pi-envelope"></i>
+                    <a [href]="'mailto:' + s.email">{{ s.email }}</a>
+                  </div>
+                }
+                @if (s.phone) {
+                  <div class="student-card-row">
+                    <i class="pi pi-phone"></i>
+                    <a [href]="'tel:' + s.phone">{{ s.phone }}</a>
+                  </div>
+                }
+              </div>
+            </div>
+          }
         </div>
       }
     </div>
   }
 </p-dialog>
+
+<app-student-detail-dialog
+  [visible]="studentDialogVisible()"
+  [student]="selectedStudent()"
+  (visibleChange)="studentDialogVisible.set($event)"
+  (close)="selectedStudent.set(null)">
+</app-student-detail-dialog>
