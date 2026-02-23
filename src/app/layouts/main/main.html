@@ -95,6 +95,20 @@
     </div>
 
     <div class="nav-section">
+      <div class="nav-label">Παρουσίες</div>
+      <a class="nav-link" routerLink="/attendance" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }" (click)="sidebarOpen.set(false)">
+        <span class="icon"><i class="pi pi-check-circle"></i></span>
+        <span class="text">Σήμερα</span>
+      </a>
+      <a class="nav-link" routerLink="/attendance/history" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }" (click)="sidebarOpen.set(false)">
+        <span class="icon"><i class="pi pi-history"></i></span>
+        <span class="text">Ιστορικό</span>
+      </a>
+    </div>
+
+    <div class="nav-section">
       <div class="nav-label">Οργάνωση</div>
       <a class="nav-link" routerLink="/instructors" routerLinkActive="active" (click)="sidebarOpen.set(false)">
         <span class="icon"><i class="pi pi-users"></i></span>

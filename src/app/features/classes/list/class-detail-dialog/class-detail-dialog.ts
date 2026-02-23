@@ -15,11 +15,14 @@ import { ToastModule } from 'primeng/toast';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 
+import { Router } from '@angular/router';
 import { ClassService } from '../../../../core/services/class.service';
 import { TeacherService, TeacherOption } from '../../../../core/services/teacher.service';
 import { EnrollmentService } from '../../../../core/services/enrollment.service';
+import { AttendanceService } from '../../../../core/services/attendance.service';
 import { ClassDetail, ClassType, UpsertClassDTO } from '../../../../core/models/class.models';
 import { Enrollment } from '../../../../core/models/enrollment.models';
+import { AttendanceHistorySession } from '../../../../core/models/attendance-history.models';
 
 @Component({
   selector: 'app-class-detail-dialog',
@@ -50,7 +53,9 @@ export class ClassDetailDialog implements OnChanges {
   private api = inject(ClassService);
   private teacherApi = inject(TeacherService);
   private enrollmentService = inject(EnrollmentService);
+  private attendanceService = inject(AttendanceService);
   private toast = inject(MessageService);
+  private router = inject(Router);
 
   @Input() visible = false;
   @Input() classItem: ClassDetail | null = null;
@@ -63,6 +68,10 @@ export class ClassDetailDialog implements OnChanges {
   editMode = signal(false);
   saving = signal(false);
   teachers = signal<TeacherOption[]>([]);
+
+  // Recent attendance
+  recentSessions = signal<AttendanceHistorySession[]>([]);
+  loadingRecentAttendance = signal(false);
 
   // Enrolled students
   enrolledStudents = signal<Enrollment[]>([]);
@@ -110,9 +119,11 @@ export class ClassDetailDialog implements OnChanges {
     }
     if (changes['visible'] && this.visible && this.classItem && this.mode === 'view') {
       this.loadEnrolledStudents();
+      this.loadRecentSessions();
     }
     if (changes['classItem'] && this.classItem && this.visible && this.mode === 'view') {
       this.loadEnrolledStudents();
+      this.loadRecentSessions();
     }
   }
 
@@ -375,6 +386,28 @@ export class ClassDetailDialog implements OnChanges {
         this.loadingEnrollments.set(false);
       }
     });
+  }
+
+  private loadRecentSessions() {
+    if (!this.classItem || this.classItem.type !== 'weekly') return;
+    this.loadingRecentAttendance.set(true);
+    this.recentSessions.set([]);
+    this.attendanceService.history(this.classItem.id, { perPage: 5 }).subscribe({
+      next: (res) => {
+        this.recentSessions.set(res.data);
+        this.loadingRecentAttendance.set(false);
+      },
+      error: () => {
+        this.loadingRecentAttendance.set(false);
+      }
+    });
+  }
+
+  openAttendanceHistory() {
+    if (!this.classItem) return;
+    const classId = this.classItem.id;
+    this.hide();
+    this.router.navigate(['/classes', classId, 'attendance']);
   }
 
   capacityDisplay(): string {

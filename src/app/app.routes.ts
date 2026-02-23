@@ -12,6 +12,11 @@ import { RegistrationList } from './features/registration/list/list';
 import { StudentRegistrationWizard } from './features/students/student-registration-wizard/student-registration-wizard';
 import { GuardiansList } from './features/guardians/list/list';
 import { ClassesList } from './features/classes/list/list';
+import { TodaySessions } from './features/attendance/today-sessions/today-sessions';
+import { AttendanceRoster } from './features/attendance/roster/roster';
+import { ClassAttendance } from './features/classes/attendance/attendance';
+import { AttendanceHistory } from './features/attendance/history/history';
+
 export const routes: Routes = [
   { path: 'auth/login', component: Login },
   { path: 'auth/register', component: Register },
@@ -34,7 +39,12 @@ export const routes: Routes = [
 
       { path: 'guardians', component: GuardiansList},
 
-      { path: 'classes', component: ClassesList }
+      { path: 'classes', component: ClassesList },
+      { path: 'classes/:classId/attendance', component: ClassAttendance },
+
+      { path: 'attendance', component: TodaySessions },
+      { path: 'attendance/history', component: AttendanceHistory },
+      { path: 'attendance/:sessionId', component: AttendanceRoster }
     ]
   },
 

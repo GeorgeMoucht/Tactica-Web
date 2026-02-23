@@ -48,47 +48,9 @@
     <div class="col-12 md:col-6 lg:col-3"><p-skeleton height="6rem" borderRadius="1rem"></p-skeleton></div>
   }
 
-  <!-- Sessions Today -->
+  <!-- Today's Sessions (click-to-roster) -->
   <div class="col-12">
-    <p-card>
-      <div class="flex align-items-center justify-content-between mb-3">
-        <div class="text-lg font-semibold">Σήμερα</div>
-        <div class="flex gap-2">
-          <button pButton icon="pi pi-plus" class="p-button-text" label="Νέο μάθημα"></button>
-          <button pButton icon="pi pi-user-plus" class="p-button-text" label="Νέος μαθητής"></button>
-        </div>
-      </div>
-
-      @if (!loadingSessions()) {
-        <p-table [value]="sessions()">
-          <ng-template pTemplate="header">
-            <tr>
-              <th>Ώρα</th>
-              <th>Μάθημα</th>
-              <th>Κατηγορία</th>
-              <th>Καθηγητής</th>
-              <th>Μαθητές</th>
-              <th>Αίθουσα</th>
-              <th>Κατάσταση</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-s>
-            <tr>
-              <td>{{ s.starts_at | date:'HH:mm' }} – {{ s.ends_at | date:'HH:mm' }}</td>
-              <td>{{ s.course.title }}</td>
-              <td>{{ disciplineLabel(s.course.discipline) }}</td>
-              <td>{{ s.instructor.name }}</td>
-              <!-- your model property is 'lerners' -->
-              <td>{{ getLearnerNames(s) }}</td>
-              <td>{{ s.room || '—' }}</td>
-              <td><p-tag [value]="s.status" [severity]="statusSeverity(s.status)"></p-tag></td>
-            </tr>
-          </ng-template>
-        </p-table>
-      } @else {
-        <p-skeleton height="10rem" borderRadius="1rem"></p-skeleton>
-      }
-    </p-card>
+    <app-today-sessions></app-today-sessions>
   </div>
 
   <!-- Weekly hours per instructor -->

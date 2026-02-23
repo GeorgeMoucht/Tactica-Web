@@ -204,6 +204,54 @@
             }
           </div>
         }
+
+        <!-- Recent Attendance Section (only for weekly classes) -->
+        @if (classItem.type === 'weekly') {
+          <div class="recent-attendance-section mt-4">
+            <div class="flex align-items-center justify-content-between mb-3">
+              <span class="font-semibold text-lg">Πρόσφατες Παρουσίες</span>
+              <button pButton label="Δες περισσότερα" icon="pi pi-external-link"
+                      class="p-button-text p-button-sm"
+                      (click)="openAttendanceHistory()">
+              </button>
+            </div>
+
+            @if (loadingRecentAttendance()) {
+              <div class="text-center p-3">
+                <i class="pi pi-spin pi-spinner"></i> Φόρτωση...
+              </div>
+            } @else if (recentSessions().length === 0) {
+              <div class="text-center text-600 p-3 surface-50 border-round">
+                Δεν υπάρχουν καταγεγραμμένες παρουσίες
+              </div>
+            } @else {
+              <p-table [value]="recentSessions()" styleClass="p-datatable-sm">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th>Ημερομηνία</th>
+                    <th>Ωράριο</th>
+                    <th>Διδάσκων</th>
+                    <th style="text-align: center">Παρόντες</th>
+                    <th style="text-align: center">Απόντες</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-session>
+                  <tr>
+                    <td>{{ session.date }}</td>
+                    <td>{{ session.starts_time?.slice(0,5) }} – {{ session.ends_time?.slice(0,5) }}</td>
+                    <td>{{ session.conducted_by_name || '—' }}</td>
+                    <td style="text-align: center">
+                      <p-tag [value]="'' + session.present_count" severity="success"></p-tag>
+                    </td>
+                    <td style="text-align: center">
+                      <p-tag [value]="'' + session.absent_count" severity="danger"></p-tag>
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            }
+          </div>
+        }
       }
 
     <!-- ============ EDIT / CREATE MODE ============ -->
