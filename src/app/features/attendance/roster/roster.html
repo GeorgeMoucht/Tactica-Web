@@ -1,0 +1,89 @@
+<p-toast position="top-center"></p-toast>
+
+@if (loading()) {
+  <p-skeleton height="4rem" borderRadius="1rem" styleClass="mb-3"></p-skeleton>
+  <p-skeleton height="20rem" borderRadius="1rem"></p-skeleton>
+} @else {
+  <!-- Header -->
+  <div class="flex align-items-center gap-2 mb-3">
+    <button pButton icon="pi pi-arrow-left" class="p-button-text" (click)="goBack()"></button>
+    <div>
+      <div class="text-xl font-semibold">{{ session()?.class_title }}</div>
+      <div class="text-600">{{ session()?.date }} · {{ session()?.teacher_name || '—' }}</div>
+    </div>
+  </div>
+
+  <!-- Conductor Selection -->
+  <div class="flex align-items-center gap-2 mb-3">
+    <label class="font-semibold text-600">Διδάσκων:</label>
+    <p-select [options]="teachers()" optionLabel="name" optionValue="id"
+      [ngModel]="selectedConductor()" (ngModelChange)="selectedConductor.set($event)"
+      placeholder="Επιλέξτε διδάσκοντα" styleClass="w-full md:w-20rem">
+    </p-select>
+  </div>
+
+  <!-- Debt Summary (if any) -->
+  @if (debtSummary().length > 0) {
+    <p-card styleClass="mb-3 border-left-3 border-red-500">
+      <div class="text-600 font-semibold mb-2">
+        <i class="pi pi-exclamation-triangle text-red-500 mr-1"></i>
+        Μαθητές με οφειλές ({{ debtSummary().length }})
+      </div>
+      @for (d of debtSummary(); track d.student_id) {
+        <div class="flex justify-content-between py-1">
+          <span>{{ d.name }}</span>
+          <span class="text-red-500 font-semibold">&euro;{{ d.outstanding_amount }}</span>
+        </div>
+      }
+    </p-card>
+  }
+
+  <!-- Attendance Table -->
+  <p-card>
+    <p-table [value]="students()">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Μαθητής</th>
+          <th>Οφειλή</th>
+          <th style="width:10rem">Παρουσία</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-s>
+        <tr>
+          <td>{{ s.name }}</td>
+          <td>
+            @if (s.has_debt) {
+              <p-tag severity="danger" [value]="'&euro;' + s.outstanding_amount"></p-tag>
+            } @else {
+              <span class="text-green-500">OK</span>
+            }
+          </td>
+          <td>
+            <div class="flex gap-1">
+              <button pButton
+                [label]="'Παρών'"
+                [severity]="getStatus(s.student_id) === 'present' ? 'success' : 'secondary'"
+                [outlined]="getStatus(s.student_id) !== 'present'"
+                size="small"
+                (click)="setStatus(s.student_id, 'present')">
+              </button>
+              <button pButton
+                [label]="'Απών'"
+                [severity]="getStatus(s.student_id) === 'absent' ? 'danger' : 'secondary'"
+                [outlined]="getStatus(s.student_id) !== 'absent'"
+                size="small"
+                (click)="setStatus(s.student_id, 'absent')">
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <div class="flex justify-content-end mt-3">
+      <button pButton label="Αποθήκευση" icon="pi pi-check"
+        [loading]="saving()" (click)="save()">
+      </button>
+    </div>
+  </p-card>
+}

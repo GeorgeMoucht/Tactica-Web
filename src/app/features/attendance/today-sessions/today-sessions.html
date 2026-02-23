@@ -1,0 +1,43 @@
+@if (loading()) {
+  <div class="grid">
+    <div class="col-12 md:col-6 lg:col-4">
+      <p-skeleton height="8rem" borderRadius="1rem"></p-skeleton>
+    </div>
+    <div class="col-12 md:col-6 lg:col-4">
+      <p-skeleton height="8rem" borderRadius="1rem"></p-skeleton>
+    </div>
+    <div class="col-12 md:col-6 lg:col-4">
+      <p-skeleton height="8rem" borderRadius="1rem"></p-skeleton>
+    </div>
+  </div>
+} @else {
+  <div class="grid">
+    @for (s of sessions(); track s.id) {
+      <div class="col-12 md:col-6 lg:col-4">
+        <p-card styleClass="cursor-pointer" (click)="openRoster(s.id)">
+          <div class="flex justify-content-between align-items-start">
+            <div>
+              <div class="text-lg font-semibold">{{ s.class_title }}</div>
+              <div class="text-600 text-sm">{{ s.starts_time }} – {{ s.ends_time }}</div>
+              <div class="text-600 text-sm mt-1">
+                <i class="pi pi-user mr-1"></i>{{ s.teacher_name || '—' }}
+              </div>
+            </div>
+            <p-tag [value]="s.attended_count + '/' + s.enrolled_count"
+                   [severity]="s.attended_count === s.enrolled_count ? 'success' : 'info'">
+            </p-tag>
+          </div>
+          @if (s.conducted_by_name) {
+            <div class="text-sm mt-2">
+              <p-tag severity="warn" [value]="'Αναπληρωτής: ' + s.conducted_by_name"></p-tag>
+            </div>
+          }
+        </p-card>
+      </div>
+    } @empty {
+      <div class="col-12 text-center text-600 py-4">
+        Δεν υπάρχουν μαθήματα σήμερα
+      </div>
+    }
+  </div>
+}

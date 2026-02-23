@@ -1,0 +1,21 @@
+.attendance-page {
+  padding: 1.5rem;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color, #1f2937);
+  }
+}
+
+.filters-bar {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--surface-ground, #f9fafb);
+  border: 1px solid var(--surface-200, #e5e7eb);
+  border-radius: 12px;
+}

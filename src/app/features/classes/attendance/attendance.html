@@ -1,0 +1,81 @@
+<div class="attendance-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="flex align-items-center gap-3">
+      <button pButton icon="pi pi-arrow-left" class="p-button-text p-button-rounded"
+              (click)="goBack()"></button>
+      <div>
+        <h2 class="m-0">Ιστορικό Παρουσιών</h2>
+        @if (classTitle()) {
+          <span class="text-600">{{ classTitle() }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Date Filters -->
+  <div class="filters-bar">
+    <div class="flex align-items-end gap-3 flex-wrap">
+      <div>
+        <label class="block font-semibold mb-1 text-sm">Από</label>
+        <p-datepicker
+          [(ngModel)]="fromDate"
+          [showIcon]="true"
+          [iconDisplay]="'input'"
+          icon="pi pi-calendar"
+          dateFormat="dd/mm/yy"
+          placeholder="Ημ/νία έναρξης"
+          styleClass="w-full"
+          appendTo="body"
+        ></p-datepicker>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1 text-sm">Έως</label>
+        <p-datepicker
+          [(ngModel)]="toDate"
+          [showIcon]="true"
+          [iconDisplay]="'input'"
+          icon="pi pi-calendar"
+          dateFormat="dd/mm/yy"
+          placeholder="Ημ/νία λήξης"
+          styleClass="w-full"
+          appendTo="body"
+        ></p-datepicker>
+      </div>
+      <button pButton label="Εφαρμογή" icon="pi pi-filter"
+              class="p-button-sm" (click)="applyFilters()"></button>
+      @if (appliedFrom() || appliedTo()) {
+        <button pButton label="Καθαρισμός" icon="pi pi-times"
+                class="p-button-text p-button-sm" (click)="clearFilters()"></button>
+      }
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <p-tabs [(value)]="activeTab">
+    <p-tablist>
+      <p-tab value="0">
+        <i class="pi pi-list mr-2"></i>Ιστορικό
+      </p-tab>
+      <p-tab value="1">
+        <i class="pi pi-chart-bar mr-2"></i>Σύνοψη
+      </p-tab>
+    </p-tablist>
+    <p-tabpanels>
+      <p-tabpanel value="0">
+        <app-history-tab
+          [classId]="classId"
+          [from]="appliedFrom()"
+          [to]="appliedTo()"
+        ></app-history-tab>
+      </p-tabpanel>
+      <p-tabpanel value="1">
+        <app-summary-tab
+          [classId]="classId"
+          [from]="appliedFrom()"
+          [to]="appliedTo()"
+        ></app-summary-tab>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
+</div>
