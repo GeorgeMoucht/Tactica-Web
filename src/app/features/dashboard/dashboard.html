@@ -82,44 +82,48 @@
           </p-tablist>
           <p-tabpanels>
             <p-tabpanel value="0">
-              @if (widgets()?.class_capacity; as classes) {
-                @for (item of classes; track item.id) {
-                  <div class="mb-3">
-                    <div class="flex justify-content-between mb-1">
-                      <span class="text-sm">{{ item.title }}</span>
-                      <span class="text-sm text-600">{{ item.enrolled }}/{{ item.capacity }}</span>
+              <div class="capacity-scroll">
+                @if (widgets()?.class_capacity; as classes) {
+                  @for (item of classes; track item.id) {
+                    <div class="mb-3">
+                      <div class="flex justify-content-between mb-1">
+                        <span class="text-sm">{{ item.title }}</span>
+                        <span class="text-sm text-600">{{ item.enrolled }}/{{ item.capacity }}</span>
+                      </div>
+                      <p-progressBar
+                        [value]="item.percentage"
+                        [showValue]="false"
+                        [style]="{ height: '0.5rem' }"
+                        [color]="capacityColor(item)">
+                      </p-progressBar>
                     </div>
-                    <p-progressBar
-                      [value]="item.percentage"
-                      [showValue]="false"
-                      [style]="{ height: '0.5rem' }"
-                      [color]="capacityColor(item)">
-                    </p-progressBar>
-                  </div>
-                } @empty {
-                  <div class="text-600">Δεν υπάρχουν ενεργά εβδομαδιαία τμήματα</div>
+                  } @empty {
+                    <div class="text-600">Δεν υπάρχουν ενεργά εβδομαδιαία τμήματα</div>
+                  }
                 }
-              }
+              </div>
             </p-tabpanel>
             <p-tabpanel value="1">
-              @if (widgets()?.workshop_capacity; as workshops) {
-                @for (item of workshops; track item.id) {
-                  <div class="mb-3">
-                    <div class="flex justify-content-between mb-1">
-                      <span class="text-sm">{{ item.title }}</span>
-                      <span class="text-sm text-600">{{ item.enrolled }}/{{ item.capacity }}</span>
+              <div class="capacity-scroll">
+                @if (widgets()?.workshop_capacity; as workshops) {
+                  @for (item of workshops; track item.id) {
+                    <div class="mb-3">
+                      <div class="flex justify-content-between mb-1">
+                        <span class="text-sm">{{ item.title }}</span>
+                        <span class="text-sm text-600">{{ item.enrolled }}/{{ item.capacity }}</span>
+                      </div>
+                      <p-progressBar
+                        [value]="item.percentage"
+                        [showValue]="false"
+                        [style]="{ height: '0.5rem' }"
+                        [color]="capacityColor(item)">
+                      </p-progressBar>
                     </div>
-                    <p-progressBar
-                      [value]="item.percentage"
-                      [showValue]="false"
-                      [style]="{ height: '0.5rem' }"
-                      [color]="capacityColor(item)">
-                    </p-progressBar>
-                  </div>
-                } @empty {
-                  <div class="text-600">Δεν υπάρχουν τρέχοντα workshops</div>
+                  } @empty {
+                    <div class="text-600">Δεν υπάρχουν τρέχοντα workshops</div>
+                  }
                 }
-              }
+              </div>
             </p-tabpanel>
           </p-tabpanels>
         </p-tabs>

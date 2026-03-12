@@ -3,3 +3,8 @@
 :host ::ng-deep .p-progressbar {
   border-radius: 0.25rem;
 }
+
+.capacity-scroll {
+  height: 300px;
+  overflow-y: auto;
+}
