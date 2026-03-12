@@ -1,0 +1,86 @@
+<div class="grid">
+  <!-- Header -->
+  <div class="col-12">
+    <div class="text-2xl font-semibold mb-3">Στατιστικά Ωρών Καθηγητών</div>
+  </div>
+
+  <!-- Filters -->
+  <div class="col-12">
+    <p-card>
+      <div class="flex flex-wrap align-items-end gap-3">
+        <div>
+          <label class="block text-sm text-600 mb-1">Περίοδος</label>
+          <p-datepicker
+            [(ngModel)]="dateRange"
+            selectionMode="range"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            placeholder="Επιλέξτε περίοδο"
+          ></p-datepicker>
+        </div>
+        <p-button label="Εβδομάδα" severity="secondary" [outlined]="true" (onClick)="setThisWeek()"></p-button>
+        <p-button label="Μήνας" severity="secondary" [outlined]="true" (onClick)="setThisMonth()"></p-button>
+        <p-button label="Φίλτραρε" icon="pi pi-search" (onClick)="applyFilter()"></p-button>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Summary cards -->
+  @if (!loading()) {
+    <div class="col-12 md:col-4">
+      <p-card>
+        <div class="text-600 text-sm">Καθηγητές</div>
+        <div class="text-3xl font-semibold">{{ rows().length }}</div>
+      </p-card>
+    </div>
+    <div class="col-12 md:col-4">
+      <p-card>
+        <div class="text-600 text-sm">Σύνολο Ωρών</div>
+        <div class="text-3xl font-semibold">{{ totalHours() }}</div>
+      </p-card>
+    </div>
+    <div class="col-12 md:col-4">
+      <p-card>
+        <div class="text-600 text-sm">Σύνολο Μαθημάτων</div>
+        <div class="text-3xl font-semibold">{{ totalSessions() }}</div>
+      </p-card>
+    </div>
+  } @else {
+    <div class="col-12 md:col-4"><p-skeleton height="6rem" borderRadius="1rem"></p-skeleton></div>
+    <div class="col-12 md:col-4"><p-skeleton height="6rem" borderRadius="1rem"></p-skeleton></div>
+    <div class="col-12 md:col-4"><p-skeleton height="6rem" borderRadius="1rem"></p-skeleton></div>
+  }
+
+  <!-- Detail table -->
+  <div class="col-12">
+    @if (!loading()) {
+      <p-card>
+        <p-table [value]="rows()" [sortField]="'total_hours'" [sortOrder]="-1">
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="instructor_name">Καθηγητής <p-sortIcon field="instructor_name"></p-sortIcon></th>
+              <th pSortableColumn="total_hours" class="text-right">Ώρες <p-sortIcon field="total_hours"></p-sortIcon></th>
+              <th pSortableColumn="session_count" class="text-right">Μαθήματα <p-sortIcon field="session_count"></p-sortIcon></th>
+              <th>Τμήματα</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>{{ row.instructor_name }}</td>
+              <td class="text-right">{{ row.total_hours }}</td>
+              <td class="text-right">{{ row.session_count }}</td>
+              <td>{{ row.classes_taught.join(', ') }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="4" class="text-center text-600">Δεν βρέθηκαν δεδομένα για την επιλεγμένη περίοδο</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    } @else {
+      <p-skeleton height="12rem" borderRadius="1rem"></p-skeleton>
+    }
+  </div>
+</div>

@@ -16,6 +16,7 @@ import { TodaySessions } from './features/attendance/today-sessions/today-sessio
 import { AttendanceRoster } from './features/attendance/roster/roster';
 import { ClassAttendance } from './features/classes/attendance/attendance';
 import { AttendanceHistory } from './features/attendance/history/history';
+import { InstructorHours } from './features/instructors/instructor-hours';
 
 export const routes: Routes = [
   { path: 'auth/login', component: Login },
@@ -44,7 +45,9 @@ export const routes: Routes = [
 
       { path: 'attendance', component: TodaySessions },
       { path: 'attendance/history', component: AttendanceHistory },
-      { path: 'attendance/:sessionId', component: AttendanceRoster }
+      { path: 'attendance/:sessionId', component: AttendanceRoster },
+
+      { path: 'instructors', component: InstructorHours }
     ]
   },
 

@@ -53,10 +53,126 @@
     <app-today-sessions></app-today-sessions>
   </div>
 
+  <!-- Widget 1: Ανεξόφλητα -->
+  @if (!loadingWidgets()) {
+    <div class="col-12 md:col-6">
+      <p-card>
+        <div class="text-lg font-semibold mb-3">Ανεξόφλητα</div>
+        @if (widgets()?.outstanding; as o) {
+          <div class="text-2xl font-semibold" [class]="o.total_amount > 0 ? 'text-orange-500' : ''">
+            {{ o.total_amount | currency:'EUR':'symbol':'1.2-2' }}
+          </div>
+          <div class="text-600 mt-2">{{ o.students_count }} μαθητές με εκκρεμότητες</div>
+        }
+      </p-card>
+    </div>
+  } @else {
+    <div class="col-12 md:col-6"><p-skeleton height="8rem" borderRadius="1rem"></p-skeleton></div>
+  }
+
+  <!-- Widget 2: Πληρότητα Τμημάτων / Workshops -->
+  @if (!loadingWidgets()) {
+    <div class="col-12 md:col-6">
+      <p-card>
+        <div class="text-lg font-semibold mb-3">Πληρότητα</div>
+        <p-tabs value="0">
+          <p-tablist>
+            <p-tab value="0">Τμήματα</p-tab>
+            <p-tab value="1">Workshops</p-tab>
+          </p-tablist>
+          <p-tabpanels>
+            <p-tabpanel value="0">
+              @if (widgets()?.class_capacity; as classes) {
+                @for (item of classes; track item.id) {
+                  <div class="mb-3">
+                    <div class="flex justify-content-between mb-1">
+                      <span class="text-sm">{{ item.title }}</span>
+                      <span class="text-sm text-600">{{ item.enrolled }}/{{ item.capacity }}</span>
+                    </div>
+                    <p-progressBar
+                      [value]="item.percentage"
+                      [showValue]="false"
+                      [style]="{ height: '0.5rem' }"
+                      [color]="capacityColor(item)">
+                    </p-progressBar>
+                  </div>
+                } @empty {
+                  <div class="text-600">Δεν υπάρχουν ενεργά εβδομαδιαία τμήματα</div>
+                }
+              }
+            </p-tabpanel>
+            <p-tabpanel value="1">
+              @if (widgets()?.workshop_capacity; as workshops) {
+                @for (item of workshops; track item.id) {
+                  <div class="mb-3">
+                    <div class="flex justify-content-between mb-1">
+                      <span class="text-sm">{{ item.title }}</span>
+                      <span class="text-sm text-600">{{ item.enrolled }}/{{ item.capacity }}</span>
+                    </div>
+                    <p-progressBar
+                      [value]="item.percentage"
+                      [showValue]="false"
+                      [style]="{ height: '0.5rem' }"
+                      [color]="capacityColor(item)">
+                    </p-progressBar>
+                  </div>
+                } @empty {
+                  <div class="text-600">Δεν υπάρχουν τρέχοντα workshops</div>
+                }
+              }
+            </p-tabpanel>
+          </p-tabpanels>
+        </p-tabs>
+      </p-card>
+    </div>
+  } @else {
+    <div class="col-12 md:col-6"><p-skeleton height="8rem" borderRadius="1rem"></p-skeleton></div>
+  }
+
+  <!-- Widget 3: Πρόσφατες Εγγραφές -->
+  @if (!loadingWidgets()) {
+    <div class="col-12">
+      <p-card>
+        <div class="flex justify-content-between align-items-center mb-3">
+          <div class="text-lg font-semibold">Πρόσφατες Εγγραφές</div>
+          <p-button label="Δες όλες" severity="secondary" [text]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="goToRegistrations()"></p-button>
+        </div>
+        @if (widgets()?.recent_registrations; as regs) {
+          <p-table [value]="regs">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Ημερομηνία</th>
+                <th>Κηδεμόνας</th>
+                <th>Μαθητές</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row>
+              <tr>
+                <td>{{ row.created_at | date:'dd/MM/yyyy' }}</td>
+                <td>{{ row.guardian_name }}</td>
+                <td>{{ row.student_summary }}</td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="3" class="text-center text-600">Δεν υπάρχουν πρόσφατες εγγραφές</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        }
+      </p-card>
+    </div>
+  } @else {
+    <div class="col-12"><p-skeleton height="10rem" borderRadius="1rem"></p-skeleton></div>
+  }
+
   <!-- Weekly hours per instructor -->
   <div class="col-12">
     <p-card>
-      <div class="text-lg font-semibold mb-3">Ώρες διδασκαλίας ανά καθηγητή (εβδομάδα)</div>
+      <div class="flex justify-content-between align-items-center mb-3">
+        <div class="text-lg font-semibold">Ώρες διδασκαλίας ανά καθηγητή (εβδομάδα)</div>
+        <p-button label="Δες όλα τα στατιστικά" severity="secondary" [text]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="goToInstructors()"></p-button>
+      </div>
 
       @if (!loadingHours()) {
         <p-table [value]="hours()">
