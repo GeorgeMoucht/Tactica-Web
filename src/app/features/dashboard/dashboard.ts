@@ -38,6 +38,7 @@ export class Dashboard implements OnInit {
   private api = inject(DashboardService);
   private router = inject(Router);
 
+  outstandingHidden = signal(true);
   loadingStats = signal(true);
   loadingHours = signal(true);
   loadingWidgets = signal(true);
