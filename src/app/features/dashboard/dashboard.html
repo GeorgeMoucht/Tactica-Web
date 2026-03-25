@@ -1,11 +1,11 @@
 <!-- src/app/features/dashboard/dashboard.html -->
 <div class="grid">
   <!-- KPI 1 -->
-  @if (!loadingStats()) {
+  @if (!loadingWidgets()) {
     <div class="col-12 md:col-6 lg:col-3">
       <p-card>
         <div class="text-600 text-sm">Ενεργοί μαθητές</div>
-        <div class="text-3xl font-semibold">{{ stats()?.active_learners }}</div>
+        <div class="text-3xl font-semibold">{{ widgets()?.stats?.active_learners }}</div>
       </p-card>
     </div>
   } @else {
@@ -13,35 +13,35 @@
   }
 
   <!-- KPI 2 -->
-  @if (!loadingStats()) {
+  @if (!loadingWidgets()) {
     <div class="col-12 md:col-6 lg:col-3">
       <p-card>
-        <div class="text-600 text-sm">Καθηγητές / Εισηγητές</div>
-        <div class="text-3xl font-semibold">{{ stats()?.active_instructors }}</div>
+        <div class="text-600 text-sm">Παρουσίες σήμερα</div>
+        <div class="text-3xl font-semibold">{{ widgets()?.stats?.today_attendance?.present }}/{{ widgets()?.stats?.today_attendance?.enrolled }}</div>
       </p-card>
     </div>
   } @else {
     <div class="col-12 md:col-6 lg:col-3"><p-skeleton height="6rem" borderRadius="1rem"></p-skeleton></div>
   }
 
-  <!-- KPI 3: your model has 'session_today' -->
-  @if (!loadingStats()) {
+  <!-- KPI 3 -->
+  @if (!loadingWidgets()) {
     <div class="col-12 md:col-6 lg:col-3">
       <p-card>
         <div class="text-600 text-sm">Μαθήματα σήμερα</div>
-        <div class="text-3xl font-semibold">{{ stats()?.session_today }}</div>
+        <div class="text-3xl font-semibold">{{ widgets()?.stats?.session_today }}</div>
       </p-card>
     </div>
   } @else {
     <div class="col-12 md:col-6 lg:col-3"><p-skeleton height="6rem" borderRadius="1rem"></p-skeleton></div>
   }
 
-  <!-- KPI 4: your model has 'entrollments_this_month' -->
-  @if (!loadingStats()) {
+  <!-- KPI 4 -->
+  @if (!loadingWidgets()) {
     <div class="col-12 md:col-6 lg:col-3">
       <p-card>
         <div class="text-600 text-sm">Εγγραφές (μήνας)</div>
-        <div class="text-3xl font-semibold">{{ stats()?.entrollments_this_month }}</div>
+        <div class="text-3xl font-semibold">{{ widgets()?.stats?.entrollments_this_month }}</div>
       </p-card>
     </div>
   } @else {
@@ -53,31 +53,147 @@
     <app-today-sessions></app-today-sessions>
   </div>
 
-  <!-- Widget 1: Ανεξόφλητα -->
-  @if (!loadingWidgets()) {
-    <div class="col-12 md:col-6">
+  <!-- Widget 1: Οικονομικά -->
+  @if (!loadingFinancials()) {
+    <div class="col-12">
       <p-card>
         <div class="flex justify-content-between align-items-center mb-3">
-          <div class="text-lg font-semibold">Ανεξόφλητα</div>
-          <p-button
-            [icon]="outstandingHidden() ? 'pi pi-eye' : 'pi pi-eye-slash'"
-            [rounded]="true"
-            [text]="true"
-            severity="secondary"
-            size="small"
-            (onClick)="outstandingHidden.set(!outstandingHidden())"
-          ></p-button>
-        </div>
-        @if (widgets()?.outstanding; as o) {
-          <div class="text-2xl font-semibold" [class.text-orange-500]="o.total_amount > 0" [class.blurred]="outstandingHidden()">
-            {{ o.total_amount | currency:'EUR':'symbol':'1.2-2' }}
+          <div class="text-lg font-semibold">Οικονομικά</div>
+          <div class="flex align-items-center gap-2">
+            <p-button
+              [icon]="financialHidden() ? 'pi pi-eye' : 'pi pi-eye-slash'"
+              [rounded]="true"
+              [text]="true"
+              severity="secondary"
+              size="small"
+              (onClick)="financialHidden.set(!financialHidden())"
+            ></p-button>
+            <p-button
+              label="Δες έξοδα"
+              severity="secondary"
+              [text]="true"
+              icon="pi pi-arrow-right"
+              iconPos="right"
+              size="small"
+              (onClick)="goToExpenses()"
+            ></p-button>
           </div>
-          <div class="text-600 mt-2" [class.blurred]="outstandingHidden()">{{ o.students_count }} μαθητές με εκκρεμότητες</div>
-        }
+        </div>
+
+        <p-tabs value="0">
+          <p-tablist>
+            <p-tab value="0">Επισκόπηση</p-tab>
+            <p-tab value="1">Έσοδα</p-tab>
+            <p-tab value="2">Έξοδα</p-tab>
+          </p-tablist>
+          <p-tabpanels>
+            <!-- Tab: Επισκόπηση -->
+            <p-tabpanel value="0">
+              @if (financials()?.overview; as ov) {
+                <div class="grid mt-2">
+                  <div class="col-6 md:col-3">
+                    <div class="text-600 text-sm mb-1">Έσοδα (μήνας)</div>
+                    <div class="text-xl font-semibold text-green-500" [class.blurred]="financialHidden()">
+                      {{ ov.revenue_this_month | currency:'EUR':'symbol':'1.2-2' }}
+                    </div>
+                    <div class="text-400 text-xs mt-1">Εξοφλημένα δίδακτρα τρέχοντα μήνα</div>
+                  </div>
+                  <div class="col-6 md:col-3">
+                    <div class="text-600 text-sm mb-1">Έξοδα (μήνας)</div>
+                    <div class="text-xl font-semibold text-red-500" [class.blurred]="financialHidden()">
+                      {{ ov.expenses_this_month | currency:'EUR':'symbol':'1.2-2' }}
+                    </div>
+                    <div class="text-400 text-xs mt-1">Σύνολο εξόδων τρέχοντα μήνα</div>
+                  </div>
+                  <div class="col-6 md:col-3">
+                    <div class="text-600 text-sm mb-1">Υπόλοιπο</div>
+                    <div class="text-xl font-semibold"
+                         [class.text-green-500]="ov.balance >= 0"
+                         [class.text-red-500]="ov.balance < 0"
+                         [class.blurred]="financialHidden()">
+                      {{ ov.balance | currency:'EUR':'symbol':'1.2-2' }}
+                    </div>
+                    <div class="text-400 text-xs mt-1">Έσοδα μείον έξοδα μήνα</div>
+                  </div>
+                  <div class="col-6 md:col-3">
+                    <div class="text-600 text-sm mb-1">Ανεξόφλητα</div>
+                    <div class="text-xl font-semibold text-orange-500" [class.blurred]="financialHidden()">
+                      {{ ov.outstanding_total | currency:'EUR':'symbol':'1.2-2' }}
+                    </div>
+                    <div class="text-400 text-xs mt-1" [class.blurred]="financialHidden()">{{ ov.outstanding_count }} μαθητές με εκκρεμή δίδακτρα</div>
+                  </div>
+                </div>
+              }
+            </p-tabpanel>
+
+            <!-- Tab: Έσοδα -->
+            <p-tabpanel value="1">
+              @if (financials()?.monthly_revenue; as rows) {
+                <p-table [value]="rows" styleClass="p-datatable-sm mt-2">
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th>Μήνας</th>
+                      <th class="text-right">Εισπραχθέντα</th>
+                      <th class="text-right">Εκκρεμή</th>
+                      <th class="text-right">Σύνολο</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-row>
+                    <tr>
+                      <td>{{ row.month_label }} {{ row.year }}</td>
+                      <td class="text-right" [class.blurred]="financialHidden()">{{ row.paid | currency:'EUR':'symbol':'1.2-2' }}</td>
+                      <td class="text-right" [class.blurred]="financialHidden()">{{ row.pending | currency:'EUR':'symbol':'1.2-2' }}</td>
+                      <td class="text-right font-semibold" [class.blurred]="financialHidden()">{{ row.total | currency:'EUR':'symbol':'1.2-2' }}</td>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="emptymessage">
+                    <tr>
+                      <td colspan="4" class="text-center text-600">Δεν υπάρχουν δεδομένα</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              }
+            </p-tabpanel>
+
+            <!-- Tab: Έξοδα -->
+            <p-tabpanel value="2">
+              @if (financials()?.expenses_summary; as exp) {
+                <div class="flex gap-4 mt-2 mb-3 flex-wrap">
+                  <div>
+                    <span class="text-600 text-sm">Σύνολο μήνα: </span>
+                    <span class="font-semibold" [class.blurred]="financialHidden()">{{ exp.total | currency:'EUR':'symbol':'1.2-2' }}</span>
+                  </div>
+                  <div>
+                    <span class="text-600 text-sm">Εκκρεμή: </span>
+                    <span class="font-semibold" [class.blurred]="financialHidden()">{{ exp.pending_count }} ({{ exp.pending_amount | currency:'EUR':'symbol':'1.2-2' }})</span>
+                  </div>
+                </div>
+                @if (exp.by_category.length > 0) {
+                  <p-table [value]="exp.by_category" styleClass="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th>Κατηγορία</th>
+                        <th class="text-right">Ποσό</th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row>
+                      <tr>
+                        <td>{{ row.category }}</td>
+                        <td class="text-right" [class.blurred]="financialHidden()">{{ row.amount | currency:'EUR':'symbol':'1.2-2' }}</td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                } @else {
+                  <div class="text-600">Δεν υπάρχουν έξοδα αυτόν τον μήνα</div>
+                }
+              }
+            </p-tabpanel>
+          </p-tabpanels>
+        </p-tabs>
       </p-card>
     </div>
   } @else {
-    <div class="col-12 md:col-6"><p-skeleton height="8rem" borderRadius="1rem"></p-skeleton></div>
+    <div class="col-12"><p-skeleton height="12rem" borderRadius="1rem"></p-skeleton></div>
   }
 
   <!-- Widget 2: Πληρότητα Τμημάτων / Workshops -->

@@ -1,15 +1,11 @@
 import { Injectable, inject } from "@angular/core";
 import { ApiService } from "./api.service";
-import { DashboardStats, DashboardWidgets, Session, WeeklyInstructorHours } from "../models/school.models";
+import { DashboardFinancials, DashboardWidgets, Session, WeeklyInstructorHours } from "../models/school.models";
 
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
     private api = inject(ApiService);
-
-    stats() {
-        return this.api.get<DashboardStats>('/dashboard/stats');
-    }
 
     sessionsToday() {
         return this.api.get<Session[]>('/sessions/today');
@@ -22,5 +18,9 @@ export class DashboardService {
 
     widgets() {
         return this.api.get<DashboardWidgets>('/dashboard/widgets');
+    }
+
+    financials() {
+        return this.api.get<DashboardFinancials>('/dashboard/financials');
     }
 }

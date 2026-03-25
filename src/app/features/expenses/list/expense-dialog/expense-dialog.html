@@ -1,0 +1,157 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '640px', maxWidth: '95vw' }"
+  [header]="mode === 'create' ? 'Νέο Έξοδο' : 'Λεπτομέρειες Εξόδου'"
+  (onHide)="hide()"
+>
+  <!-- VIEW MODE -->
+  @if (!editMode() && expense) {
+    <div class="flex flex-column gap-3">
+      <div class="flex align-items-center justify-content-between">
+        <h3 class="m-0">{{ expense.description }}</h3>
+        <p-tag
+          [value]="expense.status === 'paid' ? 'Πληρωμένο' : 'Εκκρεμεί'"
+          [severity]="expense.status === 'paid' ? 'success' : 'warn'"
+        ></p-tag>
+      </div>
+
+      <p-divider></p-divider>
+
+      <div class="grid">
+        <div class="col-6">
+          <div class="text-sm text-600 mb-1">Ποσό</div>
+          <div class="font-semibold">{{ expense.amount | currency:'EUR':'symbol':'1.2-2' }}</div>
+        </div>
+        <div class="col-6">
+          <div class="text-sm text-600 mb-1">Ημερομηνία</div>
+          <div>{{ expense.date | date:'dd/MM/yyyy' }}</div>
+        </div>
+        <div class="col-6">
+          <div class="text-sm text-600 mb-1">Κατηγορία</div>
+          <div>{{ expense.category?.name || '—' }}</div>
+        </div>
+        <div class="col-6">
+          <div class="text-sm text-600 mb-1">Πληρώθηκε</div>
+          <div>{{ expense.paid_at ? (expense.paid_at | date:'dd/MM/yyyy HH:mm') : '—' }}</div>
+        </div>
+      </div>
+
+      @if (expense.notes) {
+        <div>
+          <div class="text-sm text-600 mb-1">Σημειώσεις</div>
+          <div>{{ expense.notes }}</div>
+        </div>
+      }
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="flex justify-content-end gap-2">
+        <button pButton label="Επεξεργασία" icon="pi pi-pencil" (click)="enterEdit()"></button>
+      </div>
+    </ng-template>
+  }
+
+  <!-- EDIT / CREATE MODE -->
+  @if (editMode() && form) {
+    <form [formGroup]="form" class="flex flex-column gap-3">
+      <div>
+        <label class="block text-sm font-medium mb-1">Περιγραφή *</label>
+        <input pInputText formControlName="description" class="w-full" />
+      </div>
+
+      <div class="grid">
+        <div class="col-6">
+          <label class="block text-sm font-medium mb-1">Ποσό *</label>
+          <p-inputNumber
+            formControlName="amount"
+            mode="currency"
+            currency="EUR"
+            locale="el-GR"
+            [minFractionDigits]="2"
+            [maxFractionDigits]="2"
+            styleClass="w-full"
+          ></p-inputNumber>
+        </div>
+        <div class="col-6">
+          <label class="block text-sm font-medium mb-1">Ημερομηνία *</label>
+          <p-datePicker
+            formControlName="date"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            appendTo="body"
+            styleClass="w-full"
+          ></p-datePicker>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Κατηγορία</label>
+        <div class="flex gap-2 align-items-center">
+          <p-select
+            formControlName="expense_category_id"
+            [options]="categories"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Επιλέξτε κατηγορία"
+            [showClear]="true"
+            [filter]="true"
+            filterPlaceholder="Αναζήτηση..."
+            [style]="{ flex: '1' }"
+          ></p-select>
+          <button
+            pButton
+            icon="pi pi-plus"
+            severity="secondary"
+            rounded
+            outlined
+            size="small"
+            pTooltip="Νέα κατηγορία"
+            tooltipPosition="top"
+            (click)="showNewCategory.set(!showNewCategory())"
+            type="button"
+          ></button>
+        </div>
+
+        @if (showNewCategory()) {
+          <div class="flex gap-2 mt-2">
+            <input
+              pInputText
+              placeholder="Όνομα κατηγορίας"
+              [ngModel]="newCategoryName()"
+              (ngModelChange)="newCategoryName.set($event)"
+              [ngModelOptions]="{ standalone: true }"
+              class="flex-1"
+              (keyup.enter)="addCategory()"
+            />
+            <button pButton label="Προσθήκη" size="small" (click)="addCategory()" type="button"></button>
+          </div>
+        }
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Κατάσταση</label>
+        <p-select
+          formControlName="status"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          [style]="{ width: '100%' }"
+        ></p-select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Σημειώσεις</label>
+        <textarea pTextarea formControlName="notes" rows="3" class="w-full"></textarea>
+      </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+      <div class="flex justify-content-end gap-2">
+        <button pButton label="Ακύρωση" class="p-button-outlined" (click)="cancelEdit()"></button>
+        <button pButton label="Αποθήκευση" icon="pi pi-check" [loading]="saving()" (click)="save()"></button>
+      </div>
+    </ng-template>
+  }
+</p-dialog>

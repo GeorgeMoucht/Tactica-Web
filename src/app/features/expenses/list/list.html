@@ -1,0 +1,176 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<p-card>
+  <div class="flex align-items-center justify-content-between mb-3">
+    <div class="text-lg font-semibold">Έξοδα</div>
+    <div class="flex gap-2 align-items-center">
+      <button pButton icon="pi pi-filter-slash" label="Καθαρισμός" class="p-button-outlined" (click)="clearFilters()"></button>
+      <button pButton icon="pi pi-plus" label="Νέο Έξοδο" (click)="openCreate()"></button>
+    </div>
+  </div>
+
+  <div class="flex gap-2 mb-3 flex-wrap align-items-center">
+    <input
+      pInputText
+      type="text"
+      placeholder="Αναζήτηση περιγραφής"
+      [ngModel]="q()"
+      (ngModelChange)="q.set($event)"
+      (keyup.enter)="search()"
+    />
+    <p-select
+      [options]="categories()"
+      [ngModel]="selectedCategory()"
+      (ngModelChange)="selectedCategory.set($event); search()"
+      optionLabel="name"
+      optionValue="id"
+      placeholder="Κατηγορία"
+      [showClear]="true"
+      [style]="{ minWidth: '12rem' }"
+    ></p-select>
+    <p-select
+      [options]="statusOptions"
+      [ngModel]="selectedStatus()"
+      (ngModelChange)="selectedStatus.set($event); search()"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Κατάσταση"
+      [showClear]="true"
+      [style]="{ minWidth: '10rem' }"
+    ></p-select>
+    <p-datePicker
+      [ngModel]="dateFrom()"
+      (ngModelChange)="dateFrom.set($event); search()"
+      dateFormat="dd/mm/yy"
+      placeholder="Από"
+      [showIcon]="true"
+      appendTo="body"
+      [style]="{ minWidth: '10rem' }"
+    ></p-datePicker>
+    <p-datePicker
+      [ngModel]="dateTo()"
+      (ngModelChange)="dateTo.set($event); search()"
+      dateFormat="dd/mm/yy"
+      placeholder="Έως"
+      [showIcon]="true"
+      appendTo="body"
+      [style]="{ minWidth: '10rem' }"
+    ></p-datePicker>
+    <button pButton icon="pi pi-search" label="Αναζήτηση" (click)="search()"></button>
+  </div>
+
+  <!-- Skeleton for initial load -->
+  @if (!initialized()) {
+    <div class="flex flex-column gap-3">
+      <p-skeleton height="3rem" borderRadius="0.5rem"></p-skeleton>
+      @for (i of [1,2,3,4,5]; track i) {
+        <p-skeleton height="2.5rem" borderRadius="0.5rem"></p-skeleton>
+      }
+      <div class="flex justify-content-end gap-2 mt-2">
+        <p-skeleton width="6rem" height="2rem" borderRadius="0.5rem"></p-skeleton>
+        <p-skeleton width="8rem" height="2rem" borderRadius="0.5rem"></p-skeleton>
+      </div>
+    </div>
+  }
+
+  <p-table
+    #dt
+    [value]="rows()"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [totalRecords]="total()"
+    [lazy]="true"
+    [loading]="loading()"
+    [style]="{ display: initialized() ? 'block' : 'none' }"
+    (onLazyLoad)="onLazyLoad($event)"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="date">
+          <p-sortIcon field="date"></p-sortIcon>
+          Ημερομηνία
+        </th>
+        <th pSortableColumn="description">
+          <p-sortIcon field="description"></p-sortIcon>
+          Περιγραφή
+        </th>
+        <th>Κατηγορία</th>
+        <th pSortableColumn="amount">
+          <p-sortIcon field="amount"></p-sortIcon>
+          Ποσό
+        </th>
+        <th pSortableColumn="status">
+          <p-sortIcon field="status"></p-sortIcon>
+          Κατάσταση
+        </th>
+        <th style="width: 12rem;"></th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-r>
+      <tr>
+        <td>{{ r.date | date:'dd/MM/yyyy' }}</td>
+        <td class="font-medium">{{ r.description }}</td>
+        <td>{{ r.category?.name || '—' }}</td>
+        <td>{{ r.amount | currency:'EUR':'symbol':'1.2-2' }}</td>
+        <td>
+          <p-tag
+            [value]="r.status === 'paid' ? 'Πληρωμένο' : 'Εκκρεμεί'"
+            [severity]="r.status === 'paid' ? 'success' : 'warn'"
+          ></p-tag>
+        </td>
+        <td class="text-center">
+          <div class="flex gap-1 justify-content-center">
+            <button
+              pButton
+              icon="pi pi-eye"
+              severity="secondary"
+              rounded
+              outlined
+              size="small"
+              (click)="openExpense(r)"
+              pTooltip="Προβολή"
+              tooltipPosition="top"
+            ></button>
+            @if (r.status === 'pending') {
+              <button
+                pButton
+                icon="pi pi-check"
+                severity="success"
+                rounded
+                outlined
+                size="small"
+                (click)="payExpense(r)"
+                pTooltip="Πληρωμή"
+                tooltipPosition="top"
+              ></button>
+            }
+            <button
+              pButton
+              icon="pi pi-trash"
+              severity="danger"
+              rounded
+              outlined
+              size="small"
+              (click)="deleteExpense(r)"
+              pTooltip="Διαγραφή"
+              tooltipPosition="top"
+            ></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<app-expense-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [expense]="selected()"
+  [mode]="dialogMode()"
+  [categories]="categories()"
+  (close)="closeDialog()"
+  (saved)="onDialogSaved()">
+</app-expense-dialog>

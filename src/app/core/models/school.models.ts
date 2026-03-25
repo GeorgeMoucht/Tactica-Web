@@ -57,9 +57,14 @@ export interface InstructorHoursDetail {
     classes_taught: string[];
 }
 
-export interface DashboardStats { 
+export interface TodayAttendance {
+    present: number;
+    enrolled: number;
+}
+
+export interface DashboardStats {
     active_learners: number;
-    active_instructors: number;
+    today_attendance: TodayAttendance;
     session_today: number;
     entrollments_this_month: number;
 }
@@ -86,8 +91,45 @@ export interface RecentRegistration {
 }
 
 export interface DashboardWidgets {
+    stats: DashboardStats;
     outstanding: OutstandingInfo;
     class_capacity: ClassCapacityInfo[];
     workshop_capacity: ClassCapacityInfo[];
     recent_registrations: RecentRegistration[];
+}
+
+export interface FinancialOverview {
+    revenue_this_month: number;
+    expenses_this_month: number;
+    balance: number;
+    outstanding_total: number;
+    outstanding_count: number;
+}
+
+export interface MonthlyRevenueRow {
+    year: number;
+    month: number;
+    month_label: string;
+    paid: number;
+    pending: number;
+    total: number;
+}
+
+export interface ExpenseCategorySummary {
+    category: string;
+    amount: number;
+}
+
+export interface ExpensesSummary {
+    total: number;
+    paid: number;
+    pending_amount: number;
+    pending_count: number;
+    by_category: ExpenseCategorySummary[];
+}
+
+export interface DashboardFinancials {
+    overview: FinancialOverview;
+    monthly_revenue: MonthlyRevenueRow[];
+    expenses_summary: ExpensesSummary;
 }

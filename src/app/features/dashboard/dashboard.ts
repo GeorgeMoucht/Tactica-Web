@@ -16,8 +16,8 @@ import { TabsModule } from 'primeng/tabs';
 import { TodaySessions } from '../attendance/today-sessions/today-sessions';
 
 import {
-  DashboardStats,
   DashboardWidgets,
+  DashboardFinancials,
   ClassCapacityInfo,
   WeeklyInstructorHours
 } from '../../core/models/school.models';
@@ -39,19 +39,16 @@ export class Dashboard implements OnInit {
   private router = inject(Router);
 
   outstandingHidden = signal(true);
-  loadingStats = signal(true);
+  financialHidden = signal(true);
   loadingHours = signal(true);
   loadingWidgets = signal(true);
+  loadingFinancials = signal(true);
 
-  stats = signal<DashboardStats | null>(null);
   hours = signal<WeeklyInstructorHours[]>([]);
   widgets = signal<DashboardWidgets | null>(null);
+  financials = signal<DashboardFinancials | null>(null);
 
   ngOnInit() {
-    this.api.stats().subscribe({
-      next: s => this.stats.set(s),
-      complete: () => this.loadingStats.set(false)
-    });
     this.api.weeklyInstructorHours().subscribe({
       next: h => this.hours.set(h),
       complete: () => this.loadingHours.set(false)
@@ -59,6 +56,10 @@ export class Dashboard implements OnInit {
     this.api.widgets().subscribe({
       next: w => this.widgets.set(w),
       complete: () => this.loadingWidgets.set(false)
+    });
+    this.api.financials().subscribe({
+      next: f => this.financials.set(f),
+      complete: () => this.loadingFinancials.set(false)
     });
   }
 
@@ -78,5 +79,9 @@ export class Dashboard implements OnInit {
 
   goToInstructors() {
     this.router.navigate(['/instructors']);
+  }
+
+  goToExpenses() {
+    this.router.navigate(['/expenses']);
   }
 }
