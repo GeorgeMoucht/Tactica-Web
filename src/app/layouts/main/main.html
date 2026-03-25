@@ -136,6 +136,15 @@
       </a>
     </div>
 
+    <div class="nav-section">
+      <div class="nav-label">Οικονομικά</div>
+      <a class="nav-link" routerLink="/expenses" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }" (click)="sidebarOpen.set(false)">
+        <span class="icon"><i class="pi pi-money-bill"></i></span>
+        <span class="text">Έξοδα</span>
+      </a>
+    </div>
+
     <div class="nav-footer">
       <div class="brand-mini">
         <span class="dot"></span>
