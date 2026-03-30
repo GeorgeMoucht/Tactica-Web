@@ -1,12 +1,14 @@
 import { Injectable, inject } from "@angular/core";
-import { Observable } from "rxjs";
+import { Observable, tap } from "rxjs";
 import { ApiService } from "./api.service";
+import { DataChangedService } from "./data-changed.service";
 import { PaginatedResponse } from "../models/pagination";
 import { Expense, ExpenseCategory, UpsertExpenseDTO } from "../models/expense.models";
 
 @Injectable({ providedIn: 'root' })
 export class ExpenseService {
     private api = inject(ApiService);
+    private dataChanged = inject(DataChangedService);
 
     // Categories
     getCategories(): Observable<ExpenseCategory[]> {
@@ -59,18 +61,26 @@ export class ExpenseService {
     }
 
     create(dto: UpsertExpenseDTO): Observable<Expense> {
-        return this.api.post<Expense>('/expenses', dto);
+        return this.api.post<Expense>('/expenses', dto).pipe(
+            tap(() => this.dataChanged.notify('expense'))
+        );
     }
 
     update(id: number, dto: Partial<UpsertExpenseDTO>): Observable<Expense> {
-        return this.api.put<Expense>(`/expenses/${id}`, dto);
+        return this.api.put<Expense>(`/expenses/${id}`, dto).pipe(
+            tap(() => this.dataChanged.notify('expense'))
+        );
     }
 
     delete(id: number): Observable<void> {
-        return this.api.del<void>(`/expenses/${id}`);
+        return this.api.del<void>(`/expenses/${id}`).pipe(
+            tap(() => this.dataChanged.notify('expense'))
+        );
     }
 
     markAsPaid(id: number): Observable<Expense> {
-        return this.api.patch<Expense>(`/expenses/${id}/pay`, {});
+        return this.api.patch<Expense>(`/expenses/${id}/pay`, {}).pipe(
+            tap(() => this.dataChanged.notify('expense'))
+        );
     }
 }

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { ApiService } from './api.service';
+import { DataChangedService } from './data-changed.service';
 import {
   TodaySession,
   AttendanceRoster,
@@ -12,6 +13,7 @@ import { PaginatedResponse } from '../models/pagination';
 @Injectable({ providedIn: 'root' })
 export class AttendanceService {
   private api = inject(ApiService);
+  private dataChanged = inject(DataChangedService);
 
   todaySessions(): Observable<TodaySession[]> {
     return this.api.get<TodaySession[]>('/dashboard/today-sessions');
@@ -22,7 +24,9 @@ export class AttendanceService {
   }
 
   store(sessionId: number, payload: StoreAttendancePayload): Observable<void> {
-    return this.api.post<void>(`/sessions/${sessionId}/attendance`, payload);
+    return this.api.post<void>(`/sessions/${sessionId}/attendance`, payload).pipe(
+      tap(() => this.dataChanged.notify('attendance'))
+    );
   }
 
   history(classId: number, params?: {

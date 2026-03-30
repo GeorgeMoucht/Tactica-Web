@@ -1,13 +1,18 @@
 import { Injectable, inject } from "@angular/core";
+import { tap } from "rxjs";
 import { ApiService } from "./api.service";
+import { DataChangedService } from "./data-changed.service";
 import { CreateRegistrationDTO, RegistrationCreatedPayload, RegistrationListItem } from '../models/registration.models';
 
 @Injectable({ providedIn: 'root' })
 export class RegistrationService {
     private api = inject(ApiService);
+    private dataChanged = inject(DataChangedService);
 
     create(dto: CreateRegistrationDTO) {
-        return this.api.post<RegistrationCreatedPayload>('/registrations', dto);
+        return this.api.post<RegistrationCreatedPayload>('/registrations', dto).pipe(
+            tap(() => this.dataChanged.notify('registration'))
+        );
     }
 
     list(params: {q?: string; page?: number; pageSize?: number} = {}) {

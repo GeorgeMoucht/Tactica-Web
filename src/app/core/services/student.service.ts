@@ -1,21 +1,24 @@
 import { Injectable, inject } from '@angular/core';
+import { tap } from 'rxjs';
 import { ApiService } from './api.service';
+import { DataChangedService } from './data-changed.service';
 import { StudentDetail, StudentListRow, UpdateStudentDTO } from '../models/student.models';
 import { PaginatedResponse } from '../models/pagination';
 
 @Injectable({ providedIn: 'root' })
 export class StudentService {
   private api = inject(ApiService);
+  private dataChanged = inject(DataChangedService);
 
-  // NEW: used by the wizard now
   createStudent(payload: {
     student: any;
     guardians: any[];
   }) {
-    // Your ApiService usually unwraps { data }, so the type below is the inner "data"
     return this.api.post<{ student_id: number; guardian_ids: number[] }>(
       '/students',
       payload
+    ).pipe(
+      tap(() => this.dataChanged.notify('student'))
     );
   }
 

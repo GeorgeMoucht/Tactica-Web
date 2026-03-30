@@ -1,6 +1,7 @@
-import { Inject, Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable } from "rxjs";
+import { Observable, tap } from "rxjs";
+import { DataChangedService } from "./data-changed.service";
 
 export interface CreateMembershipPayload {
     starts_at: string;
@@ -10,12 +11,15 @@ export interface CreateMembershipPayload {
 
 @Injectable({ providedIn: 'root'})
 export class MembershipService {
-    constructor(private http: HttpClient) {}
+    private http = inject(HttpClient);
+    private dataChanged = inject(DataChangedService);
 
     createAnnual(studentId: number, payload: CreateMembershipPayload): Observable<any> {
         return this.http.post(
             `/api/v1/students/${studentId}/memberships`,
             payload
+        ).pipe(
+            tap(() => this.dataChanged.notify('membership'))
         );
     }
 }
