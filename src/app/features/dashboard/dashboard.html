@@ -92,31 +92,31 @@
               @if (financials()?.overview; as ov) {
                 <div class="grid mt-2">
                   <div class="col-6 md:col-3">
-                    <div class="text-600 text-sm mb-1">Έσοδα (μήνας)</div>
+                    <div class="text-600 text-sm mb-1" [class.blurred]="financialHidden()">Έσοδα (μήνας)</div>
                     <div class="text-xl font-semibold text-green-500" [class.blurred]="financialHidden()">
                       {{ ov.revenue_this_month | currency:'EUR':'symbol':'1.2-2' }}
                     </div>
-                    <div class="text-400 text-xs mt-1">Εξοφλημένα δίδακτρα τρέχοντα μήνα</div>
+                    <div class="text-400 text-xs mt-1" [class.blurred]="financialHidden()">Εξοφλημένα δίδακτρα τρέχοντα μήνα</div>
                   </div>
                   <div class="col-6 md:col-3">
-                    <div class="text-600 text-sm mb-1">Έξοδα (μήνας)</div>
+                    <div class="text-600 text-sm mb-1" [class.blurred]="financialHidden()">Έξοδα (μήνας)</div>
                     <div class="text-xl font-semibold text-red-500" [class.blurred]="financialHidden()">
                       {{ ov.expenses_this_month | currency:'EUR':'symbol':'1.2-2' }}
                     </div>
-                    <div class="text-400 text-xs mt-1">Σύνολο εξόδων τρέχοντα μήνα</div>
+                    <div class="text-400 text-xs mt-1" [class.blurred]="financialHidden()">Σύνολο εξόδων τρέχοντα μήνα</div>
                   </div>
                   <div class="col-6 md:col-3">
-                    <div class="text-600 text-sm mb-1">Υπόλοιπο</div>
+                    <div class="text-600 text-sm mb-1" [class.blurred]="financialHidden()">Υπόλοιπο</div>
                     <div class="text-xl font-semibold"
                          [class.text-green-500]="ov.balance >= 0"
                          [class.text-red-500]="ov.balance < 0"
                          [class.blurred]="financialHidden()">
                       {{ ov.balance | currency:'EUR':'symbol':'1.2-2' }}
                     </div>
-                    <div class="text-400 text-xs mt-1">Έσοδα μείον έξοδα μήνα</div>
+                    <div class="text-400 text-xs mt-1" [class.blurred]="financialHidden()">Έσοδα μείον έξοδα μήνα</div>
                   </div>
                   <div class="col-6 md:col-3">
-                    <div class="text-600 text-sm mb-1">Ανεξόφλητα</div>
+                    <div class="text-600 text-sm mb-1" [class.blurred]="financialHidden()">Ανεξόφλητα</div>
                     <div class="text-xl font-semibold text-orange-500" [class.blurred]="financialHidden()">
                       {{ ov.outstanding_total | currency:'EUR':'symbol':'1.2-2' }}
                     </div>
@@ -132,15 +132,15 @@
                 <p-table [value]="rows" styleClass="p-datatable-sm mt-2">
                   <ng-template pTemplate="header">
                     <tr>
-                      <th>Μήνας</th>
-                      <th class="text-right">Εισπραχθέντα</th>
-                      <th class="text-right">Εκκρεμή</th>
-                      <th class="text-right">Σύνολο</th>
+                      <th [class.blurred]="financialHidden()">Μήνας</th>
+                      <th class="text-right" [class.blurred]="financialHidden()">Εισπραχθέντα</th>
+                      <th class="text-right" [class.blurred]="financialHidden()">Εκκρεμή</th>
+                      <th class="text-right" [class.blurred]="financialHidden()">Σύνολο</th>
                     </tr>
                   </ng-template>
                   <ng-template pTemplate="body" let-row>
                     <tr>
-                      <td>{{ row.month_label }} {{ row.year }}</td>
+                      <td [class.blurred]="financialHidden()">{{ row.month_label }} {{ row.year }}</td>
                       <td class="text-right" [class.blurred]="financialHidden()">{{ row.paid | currency:'EUR':'symbol':'1.2-2' }}</td>
                       <td class="text-right" [class.blurred]="financialHidden()">{{ row.pending | currency:'EUR':'symbol':'1.2-2' }}</td>
                       <td class="text-right font-semibold" [class.blurred]="financialHidden()">{{ row.total | currency:'EUR':'symbol':'1.2-2' }}</td>
@@ -160,11 +160,11 @@
               @if (financials()?.expenses_summary; as exp) {
                 <div class="flex gap-4 mt-2 mb-3 flex-wrap">
                   <div>
-                    <span class="text-600 text-sm">Σύνολο μήνα: </span>
+                    <span class="text-600 text-sm" [class.blurred]="financialHidden()">Σύνολο μήνα: </span>
                     <span class="font-semibold" [class.blurred]="financialHidden()">{{ exp.total | currency:'EUR':'symbol':'1.2-2' }}</span>
                   </div>
                   <div>
-                    <span class="text-600 text-sm">Εκκρεμή: </span>
+                    <span class="text-600 text-sm" [class.blurred]="financialHidden()">Εκκρεμή: </span>
                     <span class="font-semibold" [class.blurred]="financialHidden()">{{ exp.pending_count }} ({{ exp.pending_amount | currency:'EUR':'symbol':'1.2-2' }})</span>
                   </div>
                 </div>
@@ -172,13 +172,13 @@
                   <p-table [value]="exp.by_category" styleClass="p-datatable-sm">
                     <ng-template pTemplate="header">
                       <tr>
-                        <th>Κατηγορία</th>
-                        <th class="text-right">Ποσό</th>
+                        <th [class.blurred]="financialHidden()">Κατηγορία</th>
+                        <th class="text-right" [class.blurred]="financialHidden()">Ποσό</th>
                       </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-row>
                       <tr>
-                        <td>{{ row.category }}</td>
+                        <td [class.blurred]="financialHidden()">{{ row.category }}</td>
                         <td class="text-right" [class.blurred]="financialHidden()">{{ row.amount | currency:'EUR':'symbol':'1.2-2' }}</td>
                       </tr>
                     </ng-template>
@@ -279,8 +279,18 @@
             <ng-template pTemplate="body" let-row>
               <tr>
                 <td>{{ row.created_at | date:'dd/MM/yyyy' }}</td>
-                <td>{{ row.guardian_name }}</td>
-                <td>{{ row.student_summary }}</td>
+                <td>
+                  @if (row.guardian_id) {
+                    <a class="text-primary cursor-pointer" (click)="openGuardian(row.guardian_id)">{{ row.guardian_name }}</a>
+                  } @else {
+                    —
+                  }
+                </td>
+                <td>
+                  @for (s of row.students; track s.id; let last = $last) {
+                    <a class="text-primary cursor-pointer" (click)="openStudent(s.id)">{{ s.name }}</a>@if (!last) {, }
+                  }
+                </td>
               </tr>
             </ng-template>
             <ng-template pTemplate="emptymessage">
@@ -326,3 +336,17 @@
     </p-card>
   </div>
 </div>
+
+<app-guardian-detail-dialog
+  [visible]="guardianDialogVisible()"
+  [guardian]="selectedGuardian()"
+  (visibleChange)="guardianDialogVisible.set($event)"
+  (close)="closeGuardianDialog()">
+</app-guardian-detail-dialog>
+
+<app-student-detail-dialog
+  [visible]="studentDialogVisible()"
+  [student]="selectedStudent()"
+  (visibleChange)="studentDialogVisible.set($event)"
+  (close)="closeStudentDialog()">
+</app-student-detail-dialog>

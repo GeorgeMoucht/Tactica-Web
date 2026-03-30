@@ -82,12 +82,17 @@ export interface ClassCapacityInfo {
     percentage: number;
 }
 
+export interface RecentRegistrationStudent {
+    id: number;
+    name: string;
+}
+
 export interface RecentRegistration {
     id: number;
     created_at: string;
-    student_name: string;
-    guardian_name: string;
-    student_summary: string;
+    guardian_id: number | null;
+    guardian_name: string | null;
+    students: RecentRegistrationStudent[];
 }
 
 export interface DashboardWidgets {

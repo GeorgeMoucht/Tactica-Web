@@ -1,12 +1,14 @@
 import { Injectable, inject } from "@angular/core";
-import { Observable } from "rxjs";
+import { Observable, tap } from "rxjs";
 import { ApiService } from "./api.service";
+import { DataChangedService } from "./data-changed.service";
 import { PaginatedResponse } from "../models/pagination";
 import { ClassDetail, ClassListRow, UpsertClassDTO } from "../models/class.models";
 
 @Injectable({ providedIn: 'root' })
 export class ClassService {
     private api = inject(ApiService);
+    private dataChanged = inject(DataChangedService);
 
     get(id: number): Observable<ClassDetail> {
         return this.api.get<ClassDetail>(`/classes/${id}`);
@@ -63,18 +65,26 @@ export class ClassService {
     }
 
     create(dto: UpsertClassDTO): Observable<ClassDetail> {
-        return this.api.post<ClassDetail>('/classes', dto);
+        return this.api.post<ClassDetail>('/classes', dto).pipe(
+            tap(() => this.dataChanged.notify('class'))
+        );
     }
 
     update(id: number, dto: Partial<UpsertClassDTO>): Observable<ClassDetail> {
-        return this.api.put<ClassDetail>(`/classes/${id}`, dto);
+        return this.api.put<ClassDetail>(`/classes/${id}`, dto).pipe(
+            tap(() => this.dataChanged.notify('class'))
+        );
     }
 
     delete(id: number): Observable<void> {
-        return this.api.del<void>(`/classes/${id}`);
+        return this.api.del<void>(`/classes/${id}`).pipe(
+            tap(() => this.dataChanged.notify('class'))
+        );
     }
 
     toggleActive(id: number): Observable<ClassDetail> {
-        return this.api.patch<ClassDetail>(`/classes/${id}/toggle-active`, {});
+        return this.api.patch<ClassDetail>(`/classes/${id}/toggle-active`, {}).pipe(
+            tap(() => this.dataChanged.notify('class'))
+        );
     }
 }
